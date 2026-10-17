@@ -99,3 +99,37 @@ def test_verify_detects_residual_risk_on_incomplete_containment(spec):
             assert v["verdict"] == "residual_risk"
         finally:
             core.drop_sim(sim["sim_id"])
+
+
+def test_min_cut_rejects_target_in_sources(spec):
+    with pytest.raises(core.PolicyError):
+        core.min_cut([spec["target"]], spec["target"])
+
+
+def test_min_cut_rejects_empty_sources(spec):
+    with pytest.raises(ValueError):
+        core.min_cut([], spec["target"])
+
+
+def test_simulate_rejects_non_dict_action(spec):
+    with pytest.raises(core.PolicyError):
+        core.simulate(["invalid-action"], spec["sources"], spec["target"])
+
+
+def test_simulate_rejects_unknown_action_type(spec):
+    with pytest.raises(core.PolicyError):
+        core.simulate([{"type": "bad_type"}], spec["sources"], spec["target"])
+
+
+def test_clone_nonexistent_source_raises_lookuperror():
+    with pytest.raises(LookupError):
+        core._clone("nonexistent-graph-source-xyz", "tf-sim-test-bad-clone")
+
+
+def test_sim_only_blocks_production_and_invalid_names():
+    with pytest.raises(core.PolicyError):
+        core._sim_only(core.PROD)
+    with pytest.raises(core.PolicyError):
+        core._sim_only("arbitrary_production_graph")
+    with pytest.raises(core.PolicyError):
+        core._sim_only(12345)

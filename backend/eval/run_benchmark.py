@@ -5,7 +5,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-os.environ["TF_GRAPH"] = "tf-bench"  
+BENCH_GRAPH = "tf-bench"
 
 import tf_core as core  
 from eval import baseline_agent as base  
@@ -18,13 +18,13 @@ LIMITS = ("Synthetic scenarios generated from a seed, one baseline strategy, sma
 
 
 def run_one(seed):
-    spec = build_variant(core.db, "tf-bench", seed, footholds=3 + seed % 3, chain=1 + seed % 3, apps=1 + seed % 2)
+    spec = build_variant(core.db, BENCH_GRAPH, seed, footholds=3 + seed % 3, chain=1 + seed % 3, apps=1 + seed % 2)
     sources, target, edges = spec["sources"], spec["target"], spec["edges"]
 
     t0 = time.time()
-    plan = core.min_cut(sources, target)
-    sim = core.simulate(plan["cut"], sources, target)
-    ver = core.verify(sim["sim_id"], sources, target)
+    plan = core.min_cut(sources, target, graph=BENCH_GRAPH)
+    sim = core.simulate(plan["cut"], sources, target, graph=BENCH_GRAPH)
+    ver = core.verify(sim["sim_id"], sources, target, src_graph=BENCH_GRAPH)
     core.drop_sim(sim["sim_id"])
     cut_pairs = {(c["src"], c["dst"]) for c in plan["cut"]}
     graph_row = {"remaining": ver["after"], "cut_size": plan["size"], "disruption": plan["disruption"],

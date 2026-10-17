@@ -128,24 +128,47 @@ def _lit(d):
  
  
 def write_case_graph(case):
-    """Persist the investigation as a graph: Case, Hypothesis, Evidence, Decision."""
+    """Persist the investigation as a graph using parameterized queries."""
     name = CASE_PREFIX + case["id"]
     if not re.match(r"^tf-case-[a-f0-9]{10}$", name):
         raise core.PolicyError("bad case id")
     g = core.db.select_graph(name)
-    cid = _fmt(case["id"])
-    g.query(f"CREATE (:Case {_lit({'name': case['id'], 'status': case['status'], 'target': case['target']})})")
+
+    g.query(
+        "CREATE (:Case {name: $name, status: $status, target: $target})",
+        {"name": case["id"], "status": case["status"], "target": case["target"]},
+    )
     for h in case.get("hypotheses", []):
-        hid = _fmt(h["id"])
-        g.query(f"CREATE (:Hypothesis {_lit({'name': h['id'], 'text': h['text'], 'p': h['p'], 'log_odds': h['log_odds']})})")
-        g.query(f"MATCH (c:Case {{name: {cid}}}), (h:Hypothesis {{name: {hid}}}) CREATE (c)-[:HAS_HYPOTHESIS]->(h)")
+        g.query(
+            "CREATE (:Hypothesis {name: $name, text: $text, p: $p, log_odds: $log_odds})",
+            {
+                "name": h["id"],
+                "text": str(h.get("text", ""))[:200],
+                "p": float(h.get("p", 0.0)),
+                "log_odds": float(h.get("log_odds", 0.0)),
+            },
+        )
+        g.query(
+            "MATCH (c:Case {name: $cid}), (h:Hypothesis {name: $hid}) CREATE (c)-[:HAS_HYPOTHESIS]->(h)",
+            {"cid": case["id"], "hid": h["id"]},
+        )
         for ev in h.get("evidence", []):
-            eid = _fmt(ev["evidence"])
-            rel = "SUPPORTS" if ev["relation"] == "supports" else "REFUTES"
-            g.query(f"MERGE (:Evidence {{name: {eid}}})")
-            g.query(f"MATCH (e:Evidence {{name: {eid}}}), (h:Hypothesis {{name: {hid}}}) "
-                    f"CREATE (e)-[:{rel} {{weight: {abs(ev['weight'])}}}]->(h)")
-    g.query(f"CREATE (:Decision {_lit({'name': 'D1', 'outcome': case['status']})})")
-    g.query(f"MATCH (c:Case {{name: {cid}}}), (d:Decision {{name: 'D1'}}) CREATE (c)-[:DECIDED]->(d)")
+            rel = "SUPPORTS" if ev.get("relation") == "supports" else "REFUTES"
+            weight = abs(float(ev.get("weight", 0.0)))
+            eid = str(ev.get("evidence", ""))
+            g.query("MERGE (:Evidence {name: $eid})", {"eid": eid})
+            g.query(
+                f"MATCH (e:Evidence {{name: $eid}}), (h:Hypothesis {{name: $hid}}) "
+                f"CREATE (e)-[:{rel} {{weight: $weight}}]->(h)",
+                {"eid": eid, "hid": h["id"], "weight": weight},
+            )
+    g.query(
+        "CREATE (:Decision {name: 'D1', outcome: $outcome})",
+        {"outcome": case["status"]},
+    )
+    g.query(
+        "MATCH (c:Case {name: $cid}), (d:Decision {name: 'D1'}) CREATE (c)-[:DECIDED]->(d)",
+        {"cid": case["id"]},
+    )
     return {"case_graph": name}
  
