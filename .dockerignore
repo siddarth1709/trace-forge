@@ -1,0 +1,13 @@
+.git
+.gitignore
+.venv
+venv
+env
+frontend/node_modules
+node_modules
+__pycache__
+*.py[cod]
+.pytest_cache
+*.db
+.DS_Store
+*.zip

@@ -1,0 +1,440 @@
+{
+  "n": 20,
+  "limits": "Synthetic scenarios generated from a seed, one baseline strategy, small sample. The graph agent here runs the deterministic tools (no LLM); the benchmark measures the graph approach, not language quality. Both agents are scored against the same edge list.",
+  "graph_agent": {
+    "contained_pct": 100.0,
+    "mean_remaining_paths": 0.0,
+    "mean_disruption": 43.8,
+    "mean_ms": 81.0
+  },
+  "baseline": {
+    "contained_pct": 0.0,
+    "mean_remaining_paths": 2.6,
+    "mean_disruption": 37.5,
+    "mean_ms": 0.0
+  },
+  "graph_cut_matches_truth_pct": 100.0,
+  "graph_agrees_with_networkx_pct": 100.0,
+  "variants": [
+    {
+      "seed": 1,
+      "paths_before": 6,
+      "truth_min_cut": 4,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 4,
+        "disruption": 62,
+        "tool_calls": 4,
+        "ms": 116,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 3,
+        "removed_nodes": 2,
+        "disruption": 41,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 2,
+      "paths_before": 6,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 42,
+        "tool_calls": 4,
+        "ms": 74,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 2,
+        "removed_nodes": 2,
+        "disruption": 37,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 3,
+      "paths_before": 5,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 78,
+        "tool_calls": 4,
+        "ms": 80,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 2,
+        "removed_nodes": 2,
+        "disruption": 46,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 4,
+      "paths_before": 5,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 21,
+        "tool_calls": 4,
+        "ms": 85,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 2,
+        "removed_nodes": 2,
+        "disruption": 34,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 5,
+      "paths_before": 7,
+      "truth_min_cut": 4,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 4,
+        "disruption": 54,
+        "tool_calls": 4,
+        "ms": 71,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 5,
+        "removed_nodes": 2,
+        "disruption": 42,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 6,
+      "paths_before": 4,
+      "truth_min_cut": 2,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 2,
+        "disruption": 50,
+        "tool_calls": 4,
+        "ms": 85,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 1,
+        "removed_nodes": 2,
+        "disruption": 39,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 7,
+      "paths_before": 6,
+      "truth_min_cut": 4,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 4,
+        "disruption": 37,
+        "tool_calls": 4,
+        "ms": 76,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 4,
+        "removed_nodes": 2,
+        "disruption": 35,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 8,
+      "paths_before": 6,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 30,
+        "tool_calls": 4,
+        "ms": 79,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 2,
+        "removed_nodes": 2,
+        "disruption": 42,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 9,
+      "paths_before": 5,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 65,
+        "tool_calls": 4,
+        "ms": 69,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 2,
+        "removed_nodes": 2,
+        "disruption": 33,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 10,
+      "paths_before": 5,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 23,
+        "tool_calls": 4,
+        "ms": 90,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 3,
+        "removed_nodes": 2,
+        "disruption": 34,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 11,
+      "paths_before": 7,
+      "truth_min_cut": 4,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 4,
+        "disruption": 74,
+        "tool_calls": 4,
+        "ms": 81,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 4,
+        "removed_nodes": 2,
+        "disruption": 46,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 12,
+      "paths_before": 4,
+      "truth_min_cut": 2,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 2,
+        "disruption": 24,
+        "tool_calls": 4,
+        "ms": 77,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 1,
+        "removed_nodes": 2,
+        "disruption": 34,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 13,
+      "paths_before": 6,
+      "truth_min_cut": 4,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 4,
+        "disruption": 29,
+        "tool_calls": 4,
+        "ms": 80,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 5,
+        "removed_nodes": 2,
+        "disruption": 36,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 14,
+      "paths_before": 6,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 46,
+        "tool_calls": 4,
+        "ms": 76,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 3,
+        "removed_nodes": 2,
+        "disruption": 44,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 15,
+      "paths_before": 5,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 59,
+        "tool_calls": 4,
+        "ms": 86,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 2,
+        "removed_nodes": 2,
+        "disruption": 27,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 16,
+      "paths_before": 5,
+      "truth_min_cut": 2,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 2,
+        "disruption": 20,
+        "tool_calls": 4,
+        "ms": 79,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 1,
+        "removed_nodes": 2,
+        "disruption": 35,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 17,
+      "paths_before": 7,
+      "truth_min_cut": 4,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 4,
+        "disruption": 55,
+        "tool_calls": 4,
+        "ms": 76,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 4,
+        "removed_nodes": 2,
+        "disruption": 35,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 18,
+      "paths_before": 4,
+      "truth_min_cut": 2,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 2,
+        "disruption": 33,
+        "tool_calls": 4,
+        "ms": 85,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 1,
+        "removed_nodes": 2,
+        "disruption": 36,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 19,
+      "paths_before": 6,
+      "truth_min_cut": 4,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 4,
+        "disruption": 47,
+        "tool_calls": 4,
+        "ms": 78,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 3,
+        "removed_nodes": 2,
+        "disruption": 41,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    },
+    {
+      "seed": 20,
+      "paths_before": 6,
+      "truth_min_cut": 3,
+      "graph": {
+        "remaining": 0,
+        "cut_size": 3,
+        "disruption": 26,
+        "tool_calls": 4,
+        "ms": 78,
+        "matches_truth": true,
+        "agrees_with_networkx": true
+      },
+      "baseline": {
+        "remaining": 2,
+        "removed_nodes": 2,
+        "disruption": 32,
+        "tool_calls": 2,
+        "ms": 0
+      }
+    }
+  ]
+}

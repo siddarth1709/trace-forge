@@ -1,0 +1,55 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: traceforge-db
+    ports:
+      - "6379:6379"
+      - "3000:3000"
+    volumes:
+      - falkordb_data:/data
+    environment:
+      - FALKORDB_ARGS=--save 60 1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: traceforge-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - FALKOR_HOST=falkordb
+      - FALKOR_PORT=6379
+      - TF_GRAPH=traceforge
+      - TF_NAME_KEY=name
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - TF_MODE=${TF_MODE:-live}
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: traceforge-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+volumes:
+  falkordb_data:

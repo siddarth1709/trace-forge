@@ -1,0 +1,45 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.zip
+*.tar.gz
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node / Frontend dependencies & build artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+npm-debug.log*
+
+# SQLite databases & logs
+*.db
+*.sqlite3
+backend/audit.db
+audit.db
+
+# Test & coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+
+# Environment files
+.env
+.env.local
