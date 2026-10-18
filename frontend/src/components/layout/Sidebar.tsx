@@ -91,8 +91,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
+        {/* Track 01 Hackathon Context Banner */}
+        <div className="mx-3 mt-3 px-3 py-2 rounded-lg bg-[#0B0D0F] border border-[#2A3038] font-mono text-[11px] flex items-center justify-between shadow-inner">
+          <div className="flex items-center gap-1.5 text-[#34D399]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" />
+            <span className="font-bold text-[10px]">Track 01</span>
+          </div>
+          <span className="text-[10px] text-[#858E9B]">Connected Data Agent</span>
+        </div>
+
         {/* Navigation list */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
           <div className="px-3 pb-2 text-[10px] font-mono font-semibold uppercase text-[#858E9B] tracking-wider">
             Platform Modules
           </div>

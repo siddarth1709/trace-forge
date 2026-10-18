@@ -139,6 +139,14 @@ export const TopNav: React.FC<TopNavProps> = ({
           <span>Guided Demo</span>
         </button>
 
+        {/* Track 01 Hackathon badge */}
+        <div className="hidden md:flex items-center">
+          <Badge variant="cyan" size="sm" className="gap-1.5 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] animate-pulse" />
+            <span>Track 01 // Connected Data</span>
+          </Badge>
+        </div>
+
         {/* Agent mode badge */}
         {mode && (
           <div className="hidden sm:flex items-center">

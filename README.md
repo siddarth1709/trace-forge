@@ -1,19 +1,20 @@
 # TRACEFORGE
 
-> **AI-Powered Cybersecurity Incident Response Agent on Connected Data**  
-> *FalkorDB Graph Hacks 2026 — Track 01: Agents That Act on Connected Data*
+> **Autonomous Cybersecurity Incident Response Agent on Connected Data**  
+> *FalkorDB Graph Hacks 2026 — Track 01: Agents That Act on Connected Data*  
+> **Repository:** [https://github.com/siddarth1709/trace-forge](https://github.com/siddarth1709/trace-forge)
 
 ---
 
 ## 1. Executive Summary
 
-**TRACEFORGE** is an autonomous incident response agent that leverages **FalkorDB** graph knowledge to investigate security alerts, trace multi-hop attack paths, evaluate competing hypotheses against corroborating evidence, calculate minimal-disruption containment plans, and prove containment in an isolated sandbox graph before human approval.
+**TRACEFORGE** is an autonomous incident response agent that leverages **FalkorDB's connected graph knowledge** to investigate security alerts, trace multi-hop attack paths, evaluate competing hypotheses against corroborating evidence, calculate minimal-disruption containment plans, and prove containment in an isolated sandbox graph before human approval.
 
 Rather than treating cybersecurity logs as flat unstructured text, TRACEFORGE utilizes the graph topology:
 1. **Time-Ordered Attack Paths:** Cypher-based pathfinding queries that enforce causality, timestamp progression, and relationship filters.
 2. **Deterministic Min-Cut Containment:** Computes graph cuts separating compromised footholds from critical crown-jewel assets while minimizing business disruption.
 3. **Isolated Sandbox Verification:** Clones the active topology to an isolated sandbox graph (`tf-sim-*`), applies containment actions, and independently validates that residual paths are strictly zero.
-4. **Safe MCP Boundary:** Exposes 10 typed tools via the Model Context Protocol (FastMCP) with bounded parameters, input allowlists, and error masking to protect internal topologies.
+4. **Safe Model Context Protocol (FastMCP) Boundary:** Exposes 10 typed tools via the Model Context Protocol (FastMCP) with bounded parameters, input allowlists, and error masking to protect internal topologies.
 
 ---
 
@@ -53,55 +54,44 @@ Sandboxed Verification ◀── Min-Cut Containment Plan
 ## 4. Quickstart
 
 ### Prerequisites
-- Docker & Docker Compose
-- *Or* Local Python 3.10+ and Node.js 18+
+- Docker & Docker Compose *or* Local Python 3.10+ and Node.js 18+
+- Active FalkorDB instance (Local Docker or FalkorDB Cloud)
 
-### Running with Docker Compose
+### Option A: Connect to FalkorDB Cloud & Run Locally
+```bash
+# 1. Verify connection to your FalkorDB instance
+python backend/test_falkor_connection.py
 
-1. **Launch Containers:**
-   ```bash
-   docker compose up --build -d
-   ```
-   *Note: Containers launch FalkorDB (port 6379, 3000), backend API (port 8000), and frontend (port 5173).*
+# 2. Start Backend API (FastAPI)
+cd backend && ../.venv/bin/python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
-2. **Seed Initial Incident Graph:**
-   The database container starts with an empty volume. Populate the demonstration scenario by running the seed script:
-   ```bash
-   docker compose exec backend python backend/seed_traceforge.py
-   # Or locally:
-   python backend/seed_traceforge.py
-   ```
+# 3. Start Frontend Dashboard (Vite + React)
+cd frontend && npm run dev
+```
+Navigate to [http://localhost:5173](http://localhost:5173).
 
-3. **Open the Web UI:**
-   Navigate to [http://localhost:5173](http://localhost:5173) in your browser.
-
-> **Compose Notes:**
-> - `docker-compose.yml` uses the `falkordb/falkordb:latest` image and checks readiness using `redis-cli ping`.
-> - If `redis-cli` is absent in future base images, test connection directly on port 6379.
+### Option B: Running with Docker Compose
+```bash
+docker compose up --build -d
+```
+*Launches FalkorDB (port 6379, 3000), backend API (port 8000), and frontend (port 5173).*
 
 ---
 
-## 5. Local Development & Testing
+## 5. Automated Verification & Test Suite
 
-### Backend Setup
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r backend/requirements.txt
-```
+The repository includes a comprehensive **93-test automated suite** (77 backend pytest tests + 16 frontend Vitest tests) verifying graph traversal, containment planning, production isolation, MCP input validation, and agent execution:
 
-### Run Test Suite
-The repository includes a comprehensive 44-test automated suite verifying graph traversal, containment planning, production isolation, MCP input validation, and agent execution:
 ```bash
+# Backend pytest suite (77 tests passed in 1.84s)
 pytest backend/tests/ -v
-```
 
-### Run Benchmark Evaluation
-To benchmark the graph-native min-cut agent against a flat-log heuristic baseline across 20 randomized scenario variants:
-```bash
-python backend/eval/run_benchmark.py
+# Frontend vitest suite (16 tests passed in 0.72s)
+cd frontend && npm test
+
+# Production build validation
+cd frontend && npm run build
 ```
-*Results will display containment percentage, disruption, execution latency, and comparison with NetworkX ground truth.*
 
 ---
 
@@ -110,21 +100,34 @@ python backend/eval/run_benchmark.py
 ```
 ├── backend/
 │   ├── agent/                 # Agent executor, planner, hypotheses, report generation
+│   ├── data/                  # Sample security datasets (AD breach, GuardDuty, CISA KEV)
 │   ├── eval/                  # 20-scenario benchmark suite & baseline agent
+│   ├── policies/              # Business impact policies & critical asset definitions
 │   ├── scenarios/             # Scenario generator & graph topologies
-│   ├── tests/                 # 44 automated pytest security & unit tests
-│   ├── main.py                # FastAPI REST service
+│   ├── tests/                 # 77 automated pytest security, isolation & unit tests
+│   ├── main.py                # FastAPI REST service & CORS handler
 │   ├── mcp_server.py          # FastMCP server with 10 safe graph tools
-│   ├── seed_traceforge.py     # Graph initialization script
+│   ├── seed_traceforge.py     # Graph initialization & S1 benchmark seeding
+│   ├── test_falkor_connection.py # Interactive FalkorDB connection & latency tester
+│   ├── tf_advanced.py         # Advisory risk uncertainty & MITRE ATT&CK mapper
 │   ├── tf_core.py             # FalkorDB graph layer, min-cut, sandboxing, audit
-│   └── tf_intel.py            # Attack paths, Bayesian hypothesis scoring, case store
+│   ├── tf_discovery.py        # Endpoint discovery & auth relationship detector
+│   ├── tf_ingest.py           # Natural language connection autoreader & parser
+│   └── tf_intel.py            # Temporal paths, Bayesian hypothesis scoring, case store
 ├── frontend/
 │   ├── src/
-│   │   ├── api.ts             # REST client
-│   │   ├── App.tsx            # Main application UI & investigation dashboard
-│   │   ├── GraphView.tsx      # SVG interactive graph topology visualization
-│   │   ├── Panels.tsx         # Evidence, hypothesis, and containment panels
-│   │   └── types.ts           # Shared TypeScript interfaces
+│   │   ├── api/               # Typed REST API endpoints
+│   │   ├── app/               # Root App & React Router definition
+│   │   ├── assets/            # Brand assets & cyber cube logo
+│   │   ├── components/        # Obsidian Studio UI components, charts & preloader
+│   │   ├── features/          # Feature views: landing, overview, graph, cases, lab
+│   │   ├── hooks/             # Custom React hooks (auth, workspace, health)
+│   │   ├── styles/            # Obsidian design tokens & global CSS
+│   │   └── test/              # 16 automated Vitest component & API unit tests
+│   ├── vercel.json            # Vercel SPA routing configuration
 │   └── package.json
-└── docker-compose.yml         # Container configuration
+├── docker-compose.yml         # Container configuration for full stack
+├── railway.json               # Railway deployment manifest
+├── render.yaml                # Render Blueprint deployment manifest
+└── SUBMISSION.md              # Official FalkorDB Hackathon Track 01 submission document
 ```

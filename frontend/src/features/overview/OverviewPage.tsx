@@ -89,9 +89,9 @@ export const OverviewPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 sm:p-7 rounded-2xl bg-[#121519] border border-[#2A3038] shadow-2xl">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#FF6B35]" />
-            <span className="text-xs font-mono font-semibold text-[#FF8559] uppercase tracking-wider">
-              Autonomous Investigation & Simulation Platform
+            <span className="h-2 w-2 rounded-full bg-[#34D399] animate-pulse" />
+            <span className="text-xs font-mono font-semibold text-[#34D399] uppercase tracking-wider">
+              Track 01: Agents That Act on Connected Data // FalkorDB Graph Hacks 2026
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5] tracking-tight">
