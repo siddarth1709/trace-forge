@@ -105,8 +105,10 @@ export const LandingPage: React.FC = () => {
         <section id="threat-network" className="space-y-8">
           <div className="space-y-4 max-w-4xl text-center sm:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#191D22] border border-[#2A3038] text-xs font-mono text-[#B0B7C3]">
-              <span className="w-2 h-2 rounded-full bg-[#FF6B35]" />
-              <span>Autonomous Investigation & Disruption Simulation Platform</span>
+              <span className="w-2 h-2 rounded-full bg-[#34D399] animate-pulse" />
+              <span className="text-[#34D399] font-bold">Track 01: Agents That Act on Connected Data</span>
+              <span className="text-[#858E9B]">|</span>
+              <span>Autonomous Graph-Theoretic Cyber Defense</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold font-mono tracking-tight text-[#F5F5F5] leading-tight">

@@ -20,6 +20,12 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 import networkx as nx
 from falkordb import FalkorDB
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 PROD = os.getenv("TF_GRAPH", "traceforge")
 SIM_PREFIX = "tf-sim-"
 NAME_KEY = os.getenv("TF_NAME_KEY", "name")

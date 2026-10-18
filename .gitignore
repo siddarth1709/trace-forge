@@ -42,4 +42,7 @@ Thumbs.db
 
 # Environment files
 .env
-.env.local
+.env.*
+*.env
+backend/.env
+frontend/.env

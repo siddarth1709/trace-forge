@@ -29,7 +29,20 @@ try:
     from falkordb import FalkorDB
 
     graph = os.getenv("TF_GRAPH", "traceforge")
-    db = FalkorDB(host=os.getenv("FALKOR_HOST", "localhost"), port=int(os.getenv("FALKOR_PORT", "6379")))
+    url = os.getenv("FALKOR_URL") or os.getenv("FALKORDB_URL") or os.getenv("REDIS_URL")
+    if url:
+        db = FalkorDB.from_url(url)
+    else:
+        password = os.getenv("FALKOR_PASSWORD") or None
+        username = os.getenv("FALKOR_USERNAME") or None
+        ssl = os.getenv("FALKOR_SSL", "0").lower() in ("1", "true", "yes")
+        db = FalkorDB(
+            host=os.getenv("FALKOR_HOST", "localhost"),
+            port=int(os.getenv("FALKOR_PORT", "6379")),
+            password=password,
+            username=username,
+            ssl=ssl,
+        )
     print("PASS connected to FalkorDB; graphs:", db.list_graphs())
     g = db.select_graph(graph)
     print("PASS nodes:", g.ro_query("MATCH (n) RETURN count(n)").result_set[0][0],
