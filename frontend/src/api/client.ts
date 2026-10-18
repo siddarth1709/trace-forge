@@ -65,6 +65,11 @@ export function getApiBaseUrl(): string {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')
   }
 
+  // 4. When deployed on cloud (e.g. Vercel), default to the live Render backend
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://traceforge-7ovs.onrender.com'
+  }
+
   return 'http://127.0.0.1:8000'
 }
 
