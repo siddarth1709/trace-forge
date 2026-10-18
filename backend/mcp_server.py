@@ -1,15 +1,3 @@
-"""TRACEFORGE MCP Server.
-
-Exposes bounded, safe MCP tools for investigation, attack-path discovery,
-hypothesis evaluation, minimum-cut planning, sandbox simulation, and independent verification.
-
-Safety guarantees:
-- All tool inputs are strictly bounded and validated.
-- Entity IDs with spaces, hyphens, and common punctuation are supported.
-- Unhandled internal errors and policy rejections return generic messages without leaking internal details.
-- Containment actions use strict allowlists and bounded numerical values.
-- Production graph modification is blocked at both MCP and core layers.
-"""
 import functools
 import logging
 import re
@@ -19,12 +7,11 @@ try:
     from mcp.server.fastmcp import FastMCP
     mcp = FastMCP("traceforge")
 except ImportError:
-    # Fallback for environments without MCP SDK installed
     class DummyFastMCP:
         def __init__(self, *args, **kwargs):
             pass
 
-        def tool(self):
+        def tool(self, *args, **kwargs):
             return lambda fn: fn
 
         def run(self):
@@ -41,8 +28,6 @@ from agent import hypotheses as hyp
 
 logger = logging.getLogger("traceforge.mcp")
 
-# Keep limits bounded so a malformed request cannot trigger an
-# unexpectedly expensive graph operation.
 MAX_ENTITIES = 50
 MAX_EVIDENCE_IDS = 50
 MAX_HYPOTHESES = 100
@@ -51,7 +36,6 @@ MAX_ACTIONS = 10
 MAX_ID_LENGTH = 256
 MAX_BENIGN_LOAD = 100000
 
-# Accept ordinary graph/entity identifiers (including spaces, e.g. "Workstation A", "Critical Server")
 _ID_PATTERN = re.compile(r"^[A-Za-z0-9 ._:@/-]{1,256}$")
 
 
@@ -130,7 +114,6 @@ def _validate_time(as_of: Any) -> Optional[int]:
     if as_of is None:
         return None
 
-    # In Python, bool is a subclass of int, so reject it explicitly. Reject floats to avoid silent truncation.
     if isinstance(as_of, bool) or not isinstance(as_of, int) or as_of < 0:
         raise ValueError("as_of must be a non-negative integer timestamp.")
 

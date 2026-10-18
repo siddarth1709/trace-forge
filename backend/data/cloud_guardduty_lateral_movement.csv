@@ -1,0 +1,5 @@
+source,target,connection_description,benign_load,evidence_id
+Public-Web-Bastion,Dev-EC2-Instance,Compromised SSL reverse shell established inbound network connection,3,EV-AWS-01
+Dev-EC2-Instance,IAM-Role-DevSecrets,Dumped AWS STS temporary instance profile credentials from IMDSv1,0,EV-AWS-02
+IAM-Role-DevSecrets,Private-ECS-Cluster,Authenticated with AssumeRole to production container cluster API,8,EV-AWS-03
+Private-ECS-Cluster,Production-Aurora-DB,Opened PostgreSQL database session on port 5432 with admin credentials,40,EV-AWS-04

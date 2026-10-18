@@ -1,0 +1,8 @@
+
+{
+  "version": 1,
+  "description": "Explicit business-impact assumptions for TRACEFORGE containment recommendations",
+  "default_status": "unknown",
+  "relationships": {},
+  "assets": {}
+}

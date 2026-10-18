@@ -1,15 +1,17 @@
-"""Rebuild the TRACEFORGE demo graph deterministically. Synthetic data only.
+"""Rebuild the TRACEFORGE benchmark and demo scenario deterministically. Synthetic data only.
 
-WARNING: this DELETES the graph named TF_GRAPH (default 'traceforge') and recreates it.
-Set CONFIRM_WIPE = True below, then run the file. Safe to re-run.
+Attack movement uses only USES / AUTHENTICATES_TO / ACCESSES. Evidence, alerts, and
+vulnerabilities use other relationship types to prevent spurious attack paths.
 
-Attack movement uses only USES / AUTHENTICATES_TO / ACCESSES. Evidence, alerts and
-vulnerabilities use other relationship types, so they never create fake attack paths.
+Safety: By default targets 'traceforge', or a custom graph specified by --graph or $TF_GRAPH.
+Requires explicit confirmation (--yes flag, $TF_CONFIRM_WIPE=1, or CONFIRM_WIPE=True).
 """
 import json
 import os
+import sys
 
 from falkordb import FalkorDB
+import redis.exceptions
 
 CONFIRM_WIPE = False
 
@@ -43,17 +45,44 @@ def edge(src, rel, dst, t, load=0, ev=None, conf=0.9):
     g.query(f"MATCH (a {{name: {fmt(src)}}}), (b {{name: {fmt(dst)}}}) CREATE (a)-[:{rel} {lit(p)}]->(b)")
 
 
-def main():
+def main(graph_name=None, confirm=False):
     global g
-    if not CONFIRM_WIPE:
-        raise SystemExit("Refusing to wipe. Set CONFIRM_WIPE = True at the top of this file first.")
+    target_graph = graph_name or os.getenv("TF_GRAPH", "traceforge")
+    confirmed = confirm or CONFIRM_WIPE or os.getenv("TF_CONFIRM_WIPE") == "1"
+
+    if "--yes" in sys.argv or "-y" in sys.argv:
+        confirmed = True
+    if "--graph" in sys.argv:
+        idx = sys.argv.index("--graph")
+        if idx + 1 < len(sys.argv):
+            target_graph = sys.argv[idx + 1]
+    elif "-g" in sys.argv:
+        idx = sys.argv.index("-g")
+        if idx + 1 < len(sys.argv):
+            target_graph = sys.argv[idx + 1]
+
+    if not confirmed:
+        raise SystemExit(
+            f"Refusing to wipe graph '{target_graph}'. Re-run with --yes, or set TF_CONFIRM_WIPE=1, "
+            "or pass confirm=True / set CONFIRM_WIPE = True."
+        )
+
+    # Delete target graph if it exists, safely propagating connection or permission errors
     try:
-        db.select_graph(GRAPH).delete()
-    except Exception:
-        pass  # graph did not exist
-    g = db.select_graph(GRAPH)
+        if target_graph in db.list_graphs():
+            db.select_graph(target_graph).delete()
+    except redis.exceptions.ResponseError as exc:
+        if "empty key" in str(exc).lower() or "not exist" in str(exc).lower():
+            pass
+        else:
+            raise
+
+    g = db.select_graph(target_graph)
 
     # ---- core scenario S1: three routes to the Critical Server
+    # P1: Workstation A -> Shared Credential -> Admin Workstation -> Critical Server
+    # P2: Workstation A -> Service Account -> Application Server -> Critical Server
+    # P3: Secondary Foothold -> Shared Credential -> Admin Workstation -> Critical Server
     node("Workstation", "Workstation A", type="workstation")
     node("Workstation", "Secondary Foothold", type="workstation")
     node("Credential", "Shared Credential", type="credential")
@@ -66,10 +95,11 @@ def main():
     edge("Secondary Foothold", "USES", "Shared Credential", 140, load=1, ev="EV-2")
     edge("Shared Credential", "AUTHENTICATES_TO", "Admin Workstation", 200, load=2, ev="EV-3")
     edge("Admin Workstation", "ACCESSES", "Critical Server", 300, load=40, ev="EV-4")
+    edge("Workstation A", "USES", "Service Account", 120, load=8, ev="EV-7")
     edge("Service Account", "AUTHENTICATES_TO", "Application Server", 150, load=30, ev="EV-5")
     edge("Application Server", "ACCESSES", "Critical Server", 320, load=120, ev="EV-6")
 
-    # ---- evidence (one per attack edge) and an incident. Only Workstation A is alerted.
+    # ---- evidence (one per attack edge: 7 attack edges, 7 evidence records) and an incident. Only Workstation A is alerted.
     texts = {
         "EV-1": ("edr", 100, "Workstation A authenticated using the shared credential."),
         "EV-2": ("edr", 140, "Secondary Foothold authenticated using the shared credential."),
@@ -77,6 +107,7 @@ def main():
         "EV-4": ("file-audit", 300, "Admin Workstation opened sessions on Critical Server."),
         "EV-5": ("auth-log", 150, "Service Account signed in to Application Server."),
         "EV-6": ("net-flow", 320, "Application Server connected to Critical Server database port."),
+        "EV-7": ("edr", 120, "Workstation A used credentials associated with the Service Account."),
     }
     for ev, (src, t, text) in texts.items():
         node("Evidence", ev, type="evidence", evidence_source=src, observed_at=t, text=text, untrusted=False)
@@ -115,12 +146,47 @@ def main():
     # ---- sanity checks
     nodes = g.ro_query("MATCH (n) RETURN count(n)").result_set[0][0]
     edges = g.ro_query("MATCH ()-[r]->() RETURN count(r)").result_set[0][0]
-    paths = g.ro_query(
-        'MATCH p=(s)-[:USES|AUTHENTICATES_TO|ACCESSES*1..8]->(t {name:"Critical Server"}) '
-        'WHERE s.name IN ["Workstation A","Secondary Foothold","Service Account"] RETURN count(p)'
+
+    # Explicit check for Workstation A -> Service Account edge
+    service_edge = g.ro_query(
+        'MATCH (a {name:"Workstation A"})-[:USES]->(b {name:"Service Account"}) '
+        'RETURN count(*)'
     ).result_set[0][0]
-    print(f"Built '{GRAPH}': {nodes} nodes, {edges} relationships")
-    print("PASS" if paths == 3 else "FAIL", "attack paths from the three sources:", paths, "(expect 3)")
+    assert service_edge == 1, "Missing Workstation A -> Service Account edge"
+
+    # Evidence count check (7 attack edges -> 7 evidence records)
+    ev_count = g.ro_query(
+        'MATCH (e:Evidence) WHERE e.name STARTS WITH "EV-" AND e.name <> "EV-INJ" RETURN count(e)'
+    ).result_set[0][0]
+    assert ev_count == 7, f"Expected 7 attack evidence records, got {ev_count}"
+
+    # Reachability from Workstation A alone (P1 and P2: 2 paths)
+    wa_paths = g.ro_query(
+        'MATCH p=(s {name:"Workstation A"})-[:USES|AUTHENTICATES_TO|ACCESSES*1..8]->(t {name:"Critical Server"}) '
+        'RETURN count(p)'
+    ).result_set[0][0]
+    assert wa_paths == 2, f"Expected 2 paths from Workstation A, got {wa_paths}"
+
+    # Reachability from Secondary Foothold alone (P3: 1 path)
+    sf_paths = g.ro_query(
+        'MATCH p=(s {name:"Secondary Foothold"})-[:USES|AUTHENTICATES_TO|ACCESSES*1..8]->(t {name:"Critical Server"}) '
+        'RETURN count(p)'
+    ).result_set[0][0]
+    assert sf_paths == 1, f"Expected 1 path from Secondary Foothold, got {sf_paths}"
+
+    # Combined footholds reachability (3 distinct routes total)
+    foothold_paths = g.ro_query(
+        'MATCH p=(s)-[:USES|AUTHENTICATES_TO|ACCESSES*1..8]->(t {name:"Critical Server"}) '
+        'WHERE s.name IN ["Workstation A", "Secondary Foothold"] RETURN count(p)'
+    ).result_set[0][0]
+    assert foothold_paths == 3, f"Expected 3 attack paths from footholds, got {foothold_paths}"
+
+    print(f"Built '{target_graph}': {nodes} nodes, {edges} relationships")
+    print(f"PASS: Workstation A -> Service Account edge confirmed ({service_edge})")
+    print(f"PASS: Attack evidence records ({ev_count}/7)")
+    print(f"PASS: Workstation A reachability: {wa_paths} paths (expect 2: P1 via Shared Credential, P2 via Service Account)")
+    print(f"PASS: Secondary Foothold reachability: {sf_paths} path (expect 1: P3 via Shared Credential)")
+    print(f"PASS: Total attack paths from footholds: {foothold_paths} (expect 3)")
 
 
 if __name__ == "__main__":

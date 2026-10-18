@@ -1,22 +1,18 @@
-# TraceForge Backend Dependencies
-# Note: Python >= 3.10 is required for the full MCP agent stack.
 
-# Core Web API
-fastapi>=0.110.0
-uvicorn[standard]>=0.28.0
-pydantic>=2.7.0
-python-dotenv>=1.0.0
+# TRACEFORGE backend
+# Python 3.11 recommended
+
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.28
+pydantic>=2.7,<3.0
+python-dotenv>=1.0
 PyYAML>=6.0
 
-# Graph Database & Graph Algorithms
-falkordb>=1.2.0
+falkordb>=1.2
 networkx>=3.0
+mcp>=1.2
+anthropic>=0.20
+httpx>=0.25
 
-# Agent, MCP Server & LLM
-mcp>=1.2.0; python_version >= "3.10"
-anthropic>=0.20.0
-httpx>=0.25.0
-
-# Testing & Quality Assurance
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
+pytest>=7.4
+pytest-asyncio>=0.21

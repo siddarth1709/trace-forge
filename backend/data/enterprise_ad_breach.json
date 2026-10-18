@@ -1,0 +1,79 @@
+{
+  "name": "Enterprise Active Directory Breach",
+  "description": "Real-world credential dumping and Kerberos lateral movement from an initial foothold to the central financial database.",
+  "nodes": [
+    {
+      "name": "Phished-Laptop-HR04",
+      "label": "Workstation",
+      "type": "workstation",
+      "criticality": "low"
+    },
+    {
+      "name": "Cached-Domain-Creds",
+      "label": "Credential",
+      "type": "credential",
+      "criticality": "high"
+    },
+    {
+      "name": "Jump-Host-IT",
+      "label": "Server",
+      "type": "server",
+      "criticality": "medium"
+    },
+    {
+      "name": "AD-Sync-Service-Account",
+      "label": "Account",
+      "type": "service_account",
+      "criticality": "high"
+    },
+    {
+      "name": "DC-CORP-PRIMARY",
+      "label": "Server",
+      "type": "server",
+      "criticality": "critical"
+    },
+    {
+      "name": "SWIFT-Financial-Database",
+      "label": "Server",
+      "type": "database",
+      "criticality": "critical"
+    }
+  ],
+  "edges": [
+    {
+      "src": "Phished-Laptop-HR04",
+      "dst": "Cached-Domain-Creds",
+      "description": "Mimikatz memory dump extracted cached domain credentials from LSASS process memory",
+      "load": 2,
+      "evidence_id": "EV-EDR-101"
+    },
+    {
+      "src": "Cached-Domain-Creds",
+      "dst": "Jump-Host-IT",
+      "description": "Kerberos authenticated sign-in session established to IT Jump Host via RDP on port 3389",
+      "load": 4,
+      "evidence_id": "EV-AUTH-102"
+    },
+    {
+      "src": "Jump-Host-IT",
+      "dst": "AD-Sync-Service-Account",
+      "description": "Harvested unconstrained delegation ticket associated with Azure AD Sync service account",
+      "load": 1,
+      "evidence_id": "EV-TGT-103"
+    },
+    {
+      "src": "AD-Sync-Service-Account",
+      "dst": "DC-CORP-PRIMARY",
+      "description": "DCSync replication session authenticated against primary Domain Controller over RPC port 135",
+      "load": 12,
+      "evidence_id": "EV-REP-104"
+    },
+    {
+      "src": "DC-CORP-PRIMARY",
+      "dst": "SWIFT-Financial-Database",
+      "description": "Domain Administrator session opened to SQL financial database port 1433",
+      "load": 55,
+      "evidence_id": "EV-DB-105"
+    }
+  ]
+}

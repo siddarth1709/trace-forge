@@ -1,4 +1,3 @@
-
 """TRACEFORGE investigation executor.
 
 All response actions are simulated in a sandbox graph.
@@ -69,6 +68,7 @@ async def mcp_session():
         and os.path.isfile(SERVER)
         and os.getenv("TF_USE_LOCAL_MCP") != "1"
     ):
+        started = False
         try:
             params = StdioServerParameters(
                 command=sys.executable,
@@ -80,9 +80,15 @@ async def mcp_session():
                     session.mode = "mcp_daemon"
                     session.is_fallback = False
                     await session.initialize()
+                    started = True
                     yield session
                     return
         except Exception as exc:
+            if started:
+                # The error came from the caller's body, not from starting the daemon.
+                # Re-raise it. Yielding a second session here would mask it with
+                # "generator didn't stop after athrow()".
+                raise
             logger.warning(
                 "MCP stdio session initialization failed: %s; falling back to local runner",
                 exc,
@@ -229,9 +235,11 @@ def _normalize_evidence(item, index):
         or bool(item.get("quarantined"))
     )
 
+    # evidence_source (edr, auth-log, ...) drives reliability weighting. The generic
+    # "source" property is 'synthetic' on every seeded node, so it must come second.
     source = (
-        item.get("source")
-        or item.get("evidence_source")
+        item.get("evidence_source")
+        or item.get("source")
         or "unknown"
     )
 

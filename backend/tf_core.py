@@ -36,7 +36,7 @@ if not IDENT_RE.match(NAME_KEY):
 
 ATTACK_RELS = [
     r.strip()
-    for r in os.getenv("TF_ATTACK_RELS", "USES,AUTHENTICATES_TO,ACCESSES").split(",")
+    for r in os.getenv("TF_ATTACK_RELS", "USES,AUTHENTICATES_TO,ACCESSES,REACHES").split(",")
     if IDENT_RE.match(r.strip())
 ]
 REL_FILTER = (":" + "|".join(ATTACK_RELS)) if ATTACK_RELS else ""
@@ -393,6 +393,13 @@ def simulate(
         if kind == "remove_edge":
             src = _name(a.get("src"))
             dst = _name(a.get("dst"))
+            rel = a.get("rel")
+            if rel is not None and (
+                not isinstance(rel, str) or rel not in ATTACK_RELS
+            ):
+                raise PolicyError(
+                    f"Relationship type must be one of ATTACK_RELS: {ATTACK_RELS}"
+                )
             if (src, dst) not in on_edges:
                 raise PolicyError(
                     f"Precondition failed: {src} -> {dst} is not on a current attack path"
@@ -517,3 +524,197 @@ def verify(
         {k: v for k, v in result.items() if k != "remaining_paths"},
     )
     return result
+
+# ---- Attack-pattern mutation lab (sandbox only)
+def mutate_pattern(
+    mutation_src: str,
+    mutation_rel: str,
+    mutation_dst: str,
+    sources: List[str],
+    target: str,
+    graph: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Add a hypothetical attack relationship in an isolated sandbox and compare paths."""
+    src = _name(mutation_src)
+    dst = _name(mutation_dst)
+    sources = [_name(s) for s in sources]
+    target = _name(target)
+
+    if not isinstance(mutation_rel, str) or not IDENT_RE.fullmatch(mutation_rel):
+        raise PolicyError(
+            f"Relationship type must be one of the allowed attack types: {ATTACK_RELS}"
+        )
+
+    if mutation_rel not in ATTACK_RELS:
+        raise PolicyError(
+            f"Relationship type must be one of the allowed attack types: {ATTACK_RELS}"
+        )
+
+    src_graph = graph or PROD
+
+    if not isinstance(src_graph, str):
+        raise PolicyError("Source graph name must be a string")
+
+    if src_graph.startswith(SIM_PREFIX):
+        raise PolicyError("Mutation source must not be an existing simulation sandbox")
+
+    # Confirm both nodes exist in the source graph before cloning.
+    k = NAME_KEY
+
+    for node_name in (src, dst):
+        rows = _ro(
+            src_graph,
+            f"MATCH (n {{{k}:$name}}) RETURN count(n)",
+            {"name": node_name},
+        )
+
+        if not rows or rows[0][0] == 0:
+            raise LookupError(
+                f"Node {node_name!r} does not exist in graph {src_graph!r}"
+            )
+
+    # Refuse duplicate mutation of an already-existing relationship.
+    rows = _ro(
+        src_graph,
+        f"MATCH (a {{{k}:$src}})-[r:{mutation_rel}]->(b {{{k}:$dst}}) "
+        "RETURN count(r)",
+        {"src": src, "dst": dst},
+    )
+
+    if rows and rows[0][0]:
+        raise PolicyError(
+            f"Relationship {src!r} -[{mutation_rel}]-> {dst!r} already exists"
+        )
+
+    # Calculate the baseline before creating any sandbox.
+    baseline = find_paths(sources, target, graph=src_graph)
+
+    # Enforce the concurrent sandbox limit.
+    existing_sandboxes = [
+        name for name in db.list_graphs()
+        if name.startswith(SIM_PREFIX)
+    ]
+
+    if len(existing_sandboxes) >= MAX_SIMS:
+        raise PolicyError(
+            f"Sandbox limit exceeded ({len(existing_sandboxes)}/{MAX_SIMS}). "
+            "Delete older sandboxes first."
+        )
+
+    sim = SIM_PREFIX + uuid.uuid4().hex[:8]
+
+    # If cloning itself fails, _clone() remains responsible for its own
+    # integrity checks. Cleanup below covers operations after successful clone.
+    method = _clone(src_graph, sim)
+
+    try:
+        # Revalidate the sandbox name immediately before writing.
+        sandbox = _sim_only(sim)
+        sandbox_graph = db.select_graph(sandbox)
+
+        # Create the hypothetical relationship only in the sandbox.
+        sandbox_graph.query(
+            f"MATCH (a {{{k}:$src}}), (b {{{k}:$dst}}) "
+            f"CREATE (a)-[r:{mutation_rel}]->(b)",
+            {"src": src, "dst": dst},
+        )
+
+        # Verify that the new relationship exists in the sandbox.
+        rows = _ro(
+            sandbox,
+            f"MATCH (a {{{k}:$src}})-[r:{mutation_rel}]->(b {{{k}:$dst}}) "
+            "RETURN count(r)",
+            {"src": src, "dst": dst},
+        )
+
+        if not rows or rows[0][0] == 0:
+            raise RuntimeError(
+                "Mutation verification failed in sandbox"
+            )
+
+        # Recompute paths against the mutated sandbox.
+        mutated = find_paths(sources, target, graph=sandbox)
+
+        def path_key(
+            path: Dict[str, Any],
+        ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+            return (
+                tuple(path.get("nodes", [])),
+                tuple(path.get("rels", [])),
+            )
+
+        baseline_keys = {
+            path_key(path)
+            for path in baseline.get("paths", [])
+        }
+
+        new_paths = [
+            path
+            for path in mutated.get("paths", [])
+            if path_key(path) not in baseline_keys
+        ]
+
+        result = {
+            "analysis": "attack_pattern_mutation",
+            "sim_id": sim,
+            "src_graph": src_graph,
+            "clone_method": method,
+            "mutation": {
+                "src": src,
+                "rel": mutation_rel,
+                "dst": dst,
+            },
+            "baseline_count": baseline.get("count", 0),
+            "mutated_count": mutated.get("count", 0),
+            "new_path_count": len(new_paths),
+            "new_paths": new_paths,
+            "baseline_paths": baseline.get("paths", []),
+            "mutated_paths": mutated.get("paths", []),
+            "simulation_scope": "sandbox_only",
+            "production_modified": False,
+            "limitations": [
+                "This is a graph-based hypothetical analysis, not proof of a real attack.",
+                "Results depend on the accuracy and completeness of the source graph.",
+                "The sandbox is retained for inspection and counts toward the sandbox limit.",
+            ],
+        }
+
+        audit(
+            "mutate_pattern",
+            {
+                "mutation": result["mutation"],
+                "sources": sources,
+                "target": target,
+                "src_graph": src_graph,
+            },
+            {
+                "sim_id": sim,
+                "new_path_count": len(new_paths),
+                "production_modified": False,
+            },
+        )
+
+        return result
+
+    except Exception as original_error:
+        # Delete only the sandbox created by this invocation.
+        # Never attempt cleanup against the source graph.
+        try:
+            cleanup_graph = _sim_only(sim)
+
+            if cleanup_graph in db.list_graphs():
+                db.select_graph(cleanup_graph).delete()
+
+        except Exception as cleanup_error:
+            warning = (
+                f"Sandbox cleanup failed for {sim!r}; "
+                f"the sandbox may still exist. "
+                f"Cleanup error: {cleanup_error!r}"
+            )
+
+            # Preserve the original exception rather than masking the
+            # mutation/verification failure with a cleanup failure.
+            if hasattr(original_error, "add_note"):
+                original_error.add_note(warning)
+
+        raise
