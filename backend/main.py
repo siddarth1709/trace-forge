@@ -67,17 +67,36 @@ app = FastAPI(
     version="0.3.0",
 )
 
-# CORS configuration for local development
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-)
+# CORS configuration supporting local development and cloud deployments (Vercel, custom domains)
+_cors_origins_env = os.getenv("CORS_ORIGINS", "")
+_allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+]
+if _cors_origins_env:
+    for _o in _cors_origins_env.split(","):
+        if _o.strip():
+            _allowed_origins.append(_o.strip())
+
+_allow_all = os.getenv("CORS_ALLOW_ALL", "0").lower() in ("1", "true", "yes")
+if _allow_all or "*" in _allowed_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_allowed_origins,
+        allow_origin_regex=os.getenv("CORS_ORIGIN_REGEX", r"https://.*\.vercel\.app"),
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+    )
 
 BENCH_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),

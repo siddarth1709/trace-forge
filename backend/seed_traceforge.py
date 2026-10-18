@@ -15,8 +15,22 @@ import redis.exceptions
 
 CONFIRM_WIPE = False
 
-GRAPH = os.getenv("TF_GRAPH", "traceforge")
-db = FalkorDB(host=os.getenv("FALKOR_HOST", "localhost"), port=int(os.getenv("FALKOR_PORT", "6379")))
+def _init_db() -> FalkorDB:
+    url = os.getenv("FALKOR_URL") or os.getenv("FALKORDB_URL") or os.getenv("REDIS_URL")
+    if url:
+        return FalkorDB.from_url(url)
+    password = os.getenv("FALKOR_PASSWORD") or None
+    username = os.getenv("FALKOR_USERNAME") or None
+    ssl = os.getenv("FALKOR_SSL", "0").lower() in ("1", "true", "yes")
+    return FalkorDB(
+        host=os.getenv("FALKOR_HOST", "localhost"),
+        port=int(os.getenv("FALKOR_PORT", "6379")),
+        password=password,
+        username=username,
+        ssl=ssl,
+    )
+
+db = _init_db()
 
 
 def fmt(v):

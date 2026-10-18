@@ -1,0 +1,28 @@
+services:
+  # TRACEFORGE FastAPI Backend Service
+  - type: web
+    name: traceforge-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: TF_MODE
+        value: live
+      - key: TF_GRAPH
+        value: traceforge
+      - key: TF_NAME_KEY
+        value: name
+      - key: FALKOR_HOST
+        value: localhost
+      - key: FALKOR_PORT
+        value: "6379"
+      - key: FALKOR_URL
+        sync: false
+      - key: FALKOR_PASSWORD
+        sync: false
+      - key: CORS_ALLOW_ALL
+        value: "1"
+      - key: ANTHROPIC_API_KEY
+        sync: false
