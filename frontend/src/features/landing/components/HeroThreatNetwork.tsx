@@ -120,11 +120,11 @@ export const HeroThreatNetwork: React.FC = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Progressive assembly animation over 1.2s
+  // Progressive assembly animation starting 300ms after load
   useEffect(() => {
     const timer = setTimeout(() => {
       setAssembled(true)
-    }, 150)
+    }, 300)
     return () => clearTimeout(timer)
   }, [])
 
@@ -148,6 +148,13 @@ export const HeroThreatNetwork: React.FC = () => {
   const handleMouseLeave = () => {
     setMousePos({ x: 0, y: 0 })
     setHoveredNode(null)
+  }
+
+  const handleReassemble = () => {
+    setAssembled(false)
+    setTimeout(() => {
+      setAssembled(true)
+    }, 150)
   }
 
   const getNodeColor = (status: NetworkNode['status']) => {
@@ -209,17 +216,14 @@ export const HeroThreatNetwork: React.FC = () => {
         <div className="flex items-center gap-3 text-[11px] text-[#858E9B]">
           <span className="hidden sm:inline">Click node to inspect metadata</span>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={() => {
-              setAssembled(false)
-              setTimeout(() => setAssembled(true), 100)
-            }}
-            className="h-7 px-2 text-[10px]"
-            title="Replay progressive assembly"
+            onClick={handleReassemble}
+            className="h-7 px-2.5 text-[11px] border-[#3B434D] hover:border-[#FF6B35] text-[#F5F5F5]"
+            title="Replay progressive graph assembly"
           >
-            <RefreshCw className="w-3 h-3 mr-1" />
-            Reassemble
+            <RefreshCw className="w-3 h-3 mr-1.5 text-[#FF8559]" />
+            Replay Assembly
           </Button>
         </div>
       </div>
@@ -233,14 +237,36 @@ export const HeroThreatNetwork: React.FC = () => {
             className="w-full h-full max-h-[360px] select-none"
           >
             <defs>
+              {/* Radial gradient background grid dots */}
+              <pattern id="hero-grid-dots" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1" fill="#22272E" />
+              </pattern>
+
+              {/* Glowing filter */}
               <filter id="hero-glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feGaussianBlur stdDeviation="3" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
             </defs>
+
+            {/* Background grid */}
+            <rect width="100%" height="100%" fill="url(#hero-grid-dots)" />
+
+            {/* Subtle radar scan wave */}
+            <circle
+              cx="350"
+              cy="160"
+              r="140"
+              fill="none"
+              stroke="#2A3038"
+              strokeWidth="1"
+              strokeDasharray="4 6"
+              className="animate-spin opacity-40 origin-center"
+              style={{ animationDuration: '40s' }}
+            />
 
             {/* Edge Connections */}
             {EDGES.map((edge, idx) => {
@@ -259,7 +285,7 @@ export const HeroThreatNetwork: React.FC = () => {
 
               return (
                 <g key={`edge-${idx}`}>
-                  {/* Base edge line with progressive assembly */}
+                  {/* Base edge line with progressive stroke-draw assembly */}
                   <line
                     x1={src.x}
                     y1={src.y}
@@ -267,11 +293,12 @@ export const HeroThreatNetwork: React.FC = () => {
                     y2={dst.y}
                     stroke={edgeColor}
                     strokeWidth={edgeWidth}
-                    strokeDasharray={isHighlighted ? '4 4' : 'none'}
-                    className="transition-all duration-200"
+                    strokeDasharray={assembled ? (isHighlighted ? '4 4' : 'none') : '260'}
+                    strokeDashoffset={assembled ? 0 : 260}
+                    className="transition-all duration-300"
                     style={{
-                      opacity: assembled ? (isHighlighted ? 1 : 0.6) : 0,
-                      transition: `opacity 0.6s ease ${idx * 0.08}s, stroke 0.2s`,
+                      opacity: assembled ? (isHighlighted ? 1 : 0.65) : 0,
+                      transition: `stroke-dashoffset 0.85s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.1}s, opacity 0.6s ease ${idx * 0.08}s, stroke 0.2s`,
                     }}
                   />
 
@@ -282,7 +309,7 @@ export const HeroThreatNetwork: React.FC = () => {
                         path={`M ${src.x} ${src.y} L ${dst.x} ${dst.y}`}
                         dur={`${2.2 + (idx % 3) * 0.4}s`}
                         repeatCount="indefinite"
-                        begin={`${idx * 0.3}s`}
+                        begin={`${0.4 + idx * 0.25}s`}
                       />
                     </circle>
                   )}
@@ -295,6 +322,8 @@ export const HeroThreatNetwork: React.FC = () => {
               const colors = getNodeColor(node.status)
               const isSelected = selectedNode.id === node.id
               const isHovered = hoveredNode === node.id
+              const baseR = isSelected ? 20 : isHovered ? 18 : 16
+              const dotR = isSelected ? 6 : isHovered ? 5 : 4
 
               return (
                 <g
@@ -303,13 +332,10 @@ export const HeroThreatNetwork: React.FC = () => {
                   onClick={() => setSelectedNode(node)}
                   onMouseEnter={() => setHoveredNode(node.id)}
                   onMouseLeave={() => setHoveredNode(null)}
-                  className="cursor-pointer transition-transform duration-200"
+                  className="cursor-pointer select-none"
                   style={{
                     opacity: assembled ? 1 : 0,
-                    transform: assembled
-                      ? `translate(${node.x}px, ${node.y}px) scale(${isSelected ? 1.15 : isHovered ? 1.08 : 1})`
-                      : `translate(${node.x}px, ${node.y}px) scale(0)`,
-                    transition: `transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.09}s, opacity 0.4s ease ${idx * 0.09}s`,
+                    transition: `opacity 0.5s ease ${0.15 + idx * 0.08}s`,
                   }}
                 >
                   {/* Outer pulse wave */}
@@ -326,21 +352,25 @@ export const HeroThreatNetwork: React.FC = () => {
                     />
                   )}
 
-                  {/* Outer halo ring */}
+                  {/* Outer halo ring with smooth spring radius expansion on appear */}
                   <circle
-                    r={isSelected ? 20 : 16}
+                    r={assembled ? baseR : 0}
                     fill={colors.fill}
                     stroke={colors.stroke}
                     strokeWidth={isSelected ? 2.5 : 1.5}
                     filter={isSelected ? 'url(#hero-glow)' : undefined}
-                    className="transition-all duration-180"
+                    style={{
+                      transition: `r 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) ${0.15 + idx * 0.08}s, fill 0.2s, stroke 0.2s`,
+                    }}
                   />
 
-                  {/* Core center dot */}
+                  {/* Core center dot with animated appear */}
                   <circle
-                    r={isSelected ? 6 : 4}
+                    r={assembled ? dotR : 0}
                     fill={colors.stroke}
-                    className="transition-all duration-180"
+                    style={{
+                      transition: `r 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${0.2 + idx * 0.08}s`,
+                    }}
                   />
 
                   {/* Node Title Label */}
@@ -351,7 +381,11 @@ export const HeroThreatNetwork: React.FC = () => {
                     fontSize={isSelected ? '10' : '9'}
                     fontFamily="monospace"
                     fontWeight={isSelected ? 'bold' : 'normal'}
-                    className="select-none pointer-events-none"
+                    className="select-none pointer-events-none transition-opacity duration-300"
+                    style={{
+                      opacity: assembled ? 1 : 0,
+                      transition: `opacity 0.4s ease ${0.25 + idx * 0.08}s`,
+                    }}
                   >
                     {node.label}
                   </text>

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ShieldCheck,
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { Button } from '../../components/ui/Button.tsx'
 import { Card } from '../../components/ui/Card.tsx'
+import { ScrollReveal } from '../../components/ui/ScrollReveal.tsx'
 import { HeroThreatNetwork } from './components/HeroThreatNetwork.tsx'
 import { AttackPathTracer } from './components/AttackPathTracer.tsx'
 import { ContainmentSimulator } from './components/ContainmentSimulator.tsx'
@@ -29,6 +30,15 @@ import { EvidenceInvestigationTimeline } from './components/EvidenceInvestigatio
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate()
+  const [heroMounted, setHeroMounted] = useState(false)
+
+  // Staggered hero entrance sequence triggered after initial DOM paint
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHeroMounted(true)
+    }, 60)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#0B0D0F] text-[#F5F5F5] font-sans selection:bg-[#321E17] selection:text-[#FF8559]">
@@ -48,12 +58,13 @@ export const LandingPage: React.FC = () => {
                   v2.4
                 </span>
               </div>
-              <span className="text-[10px] text-[#858E9B] font-mono block leading-tight">
-                Graph Theoretic Disruption Engine
-              </span>
+              <div className="text-[10px] text-[#858E9B] font-mono hidden sm:block">
+                FalkorDB Graph-Theoretic Cyber Defense Engine
+              </div>
             </div>
           </div>
 
+          {/* Quick Anchor Navigation */}
           <nav className="hidden lg:flex items-center gap-6 text-xs font-mono text-[#858E9B]">
             <a href="#threat-network" className="hover:text-[#F5F5F5] transition-colors duration-180">
               Threat Network
@@ -104,21 +115,58 @@ export const LandingPage: React.FC = () => {
         {/* ========================================================================= */}
         <section id="threat-network" className="space-y-8">
           <div className="space-y-4 max-w-4xl text-center sm:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#191D22] border border-[#2A3038] text-xs font-mono text-[#B0B7C3]">
+            {/* Stagger 1: Hackathon Badge */}
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#191D22] border border-[#2A3038] text-xs font-mono text-[#B0B7C3]"
+              style={{
+                opacity: heroMounted ? 1 : 0,
+                transform: heroMounted ? 'translateY(0)' : 'translateY(-16px)',
+                transition: 'opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 100ms, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 100ms',
+                willChange: 'opacity, transform',
+              }}
+            >
               <span className="w-2 h-2 rounded-full bg-[#34D399] animate-pulse" />
               <span className="text-[#34D399] font-bold">Track 01: Agents That Act on Connected Data</span>
               <span className="text-[#858E9B]">|</span>
               <span>Autonomous Graph-Theoretic Cyber Defense</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold font-mono tracking-tight text-[#F5F5F5] leading-tight">
+            {/* Stagger 2: Hero Headline */}
+            <h1
+              className="text-3xl sm:text-5xl lg:text-6xl font-extrabold font-mono tracking-tight text-[#F5F5F5] leading-tight"
+              style={{
+                opacity: heroMounted ? 1 : 0,
+                transform: heroMounted ? 'translateY(0)' : 'translateY(28px)',
+                transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 250ms, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 250ms',
+                willChange: 'opacity, transform',
+              }}
+            >
               Deterministic Attack Disruption Powered by FalkorDB
             </h1>
-            <p className="text-[#B0B7C3] text-base sm:text-lg leading-relaxed font-sans max-w-3xl">
+
+            {/* Stagger 3: Subtitle */}
+            <p
+              className="text-[#B0B7C3] text-base sm:text-lg leading-relaxed font-sans max-w-3xl"
+              style={{
+                opacity: heroMounted ? 1 : 0,
+                transform: heroMounted ? 'translateY(0)' : 'translateY(28px)',
+                transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 400ms, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 400ms',
+                willChange: 'opacity, transform',
+              }}
+            >
               When multi-hop intrusions penetrate initial footholds, traditional SIEMs dump thousands of disconnected flat alerts into analyst queues. TRACEFORGE projects identity structures, network connectivity, and CVE exposure into a unified directed property graph—calculating mathematically proven <strong>minimum-cuts</strong> that sever all attacker pathways with <strong>zero benign business disruption</strong>.
             </p>
 
-            <div className="pt-2 flex flex-wrap items-center gap-3.5 font-mono text-xs justify-center sm:justify-start">
+            {/* Stagger 4: Action Buttons */}
+            <div
+              className="pt-2 flex flex-wrap items-center gap-3.5 font-mono text-xs justify-center sm:justify-start"
+              style={{
+                opacity: heroMounted ? 1 : 0,
+                transform: heroMounted ? 'translateY(0)' : 'translateY(28px)',
+                transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 550ms, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 550ms',
+                willChange: 'opacity, transform',
+              }}
+            >
               <Button variant="primary" size="lg" onClick={() => navigate('/dashboard')}>
                 <Play className="w-4 h-4 mr-2 fill-current" />
                 Launch Console Dashboard (/dashboard)
@@ -134,13 +182,29 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Interactive Hero Threat Network Centerpiece */}
-          <div className="pt-4">
+          {/* Stagger 5: Interactive Hero Threat Network Centerpiece */}
+          <div
+            className="pt-4"
+            style={{
+              opacity: heroMounted ? 1 : 0,
+              transform: heroMounted ? 'translateY(0) scale(1)' : 'translateY(36px) scale(0.97)',
+              transition: 'opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 700ms, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 700ms',
+              willChange: 'opacity, transform',
+            }}
+          >
             <HeroThreatNetwork />
           </div>
 
-          {/* Safety Invariant Callout */}
-          <div className="p-4 rounded-xl bg-[#121519] border border-[#2A3038] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
+          {/* Stagger 6: Safety Invariant Callout */}
+          <div
+            className="p-4 rounded-xl bg-[#121519] border border-[#2A3038] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono"
+            style={{
+              opacity: heroMounted ? 1 : 0,
+              transform: heroMounted ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1) 850ms, transform 0.75s cubic-bezier(0.16, 1, 0.3, 1) 850ms',
+              willChange: 'opacity, transform',
+            }}
+          >
             <div className="flex items-center gap-2.5 text-[#34D399]">
               <ShieldCheck className="w-4 h-4 shrink-0" />
               <span>Safety Guarantee: 100% Production Isolation (Strict Read-Only Production Graph)</span>
@@ -154,120 +218,138 @@ export const LandingPage: React.FC = () => {
         {/* ========================================================================= */}
         {/* 3. SEQUENTIAL ATTACK-PATH TRACING VISUALIZATION */}
         {/* ========================================================================= */}
-        <section id="attack-tracing" className="space-y-6">
-          <AttackPathTracer />
-        </section>
+        <ScrollReveal direction="up" delay={80}>
+          <section id="attack-tracing" className="space-y-6">
+            <AttackPathTracer />
+          </section>
+        </ScrollReveal>
 
         {/* ========================================================================= */}
         {/* 4. INTERACTIVE DISRUPTION SIMULATOR (Sandbox Before & After) */}
         {/* ========================================================================= */}
-        <section id="simulator" className="space-y-6">
-          <ContainmentSimulator />
-        </section>
+        <ScrollReveal direction="up" delay={80}>
+          <section id="simulator" className="space-y-6">
+            <ContainmentSimulator />
+          </section>
+        </ScrollReveal>
 
         {/* ========================================================================= */}
         {/* 5. ANIMATED SECURITY METRICS & CHARTS */}
         {/* ========================================================================= */}
-        <section id="metrics" className="space-y-6">
-          <AnimatedSecurityMetrics />
-        </section>
+        <ScrollReveal direction="up" delay={80}>
+          <section id="metrics" className="space-y-6">
+            <AnimatedSecurityMetrics />
+          </section>
+        </ScrollReveal>
 
         {/* ========================================================================= */}
         {/* 6. EVIDENCE & INVESTIGATION TIMELINE */}
         {/* ========================================================================= */}
-        <section id="timeline" className="space-y-6">
-          <EvidenceInvestigationTimeline />
-        </section>
+        <ScrollReveal direction="up" delay={80}>
+          <section id="timeline" className="space-y-6">
+            <EvidenceInvestigationTimeline />
+          </section>
+        </ScrollReveal>
 
         {/* ========================================================================= */}
         {/* 7. THE FOUR PILLARS OF TRACEFORGE */}
         {/* ========================================================================= */}
         <section id="pillars" className="space-y-6">
-          <div className="border-b border-[#2A3038] pb-4">
-            <div className="flex items-center gap-2 text-xs font-mono text-[#FF8559] uppercase tracking-wider mb-1">
-              <Layers className="w-4 h-4" />
-              <span>Core Architectural Foundations</span>
+          <ScrollReveal direction="up" delay={50}>
+            <div className="border-b border-[#2A3038] pb-4">
+              <div className="flex items-center gap-2 text-xs font-mono text-[#FF8559] uppercase tracking-wider mb-1">
+                <Layers className="w-4 h-4" />
+                <span>Core Architectural Foundations</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
+                The Four Pillars of TRACEFORGE
+              </h2>
+              <p className="text-xs text-[#858E9B] mt-1 font-sans">
+                Designed from first principles to replace slow, manual alert triage with deterministic graph algorithms.
+              </p>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
-              The Four Pillars of TRACEFORGE
-            </h2>
-            <p className="text-xs text-[#858E9B] mt-1 font-sans">
-              Designed from first principles to replace slow, manual alert triage with deterministic graph algorithms.
-            </p>
-          </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card surface="primary" className="p-6 space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-[#321E17] border border-[#FF6B35]/40 flex items-center justify-center text-[#FF8559]">
-                <Database className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold font-mono text-[#F5F5F5]">
-                  1. FalkorDB Graph Theoretic Core
-                </h3>
-                <p className="text-xs text-[#858E9B] font-sans mt-2 leading-relaxed">
-                  Stores enterprise identities, cloud permissions, firewall rules, and known vulnerabilities as a directed property graph. Leverages sparse GraphBLAS linear algebra matrices for sub-5 millisecond multi-hop path traversal.
-                </p>
-              </div>
-              <div className="pt-2 border-t border-[#2A3038] text-[11px] font-mono text-[#B0B7C3] flex items-center justify-between">
-                <span>Index Engine: Sparse Matrix GraphBLAS</span>
-                <span className="text-[#34D399] font-bold">&lt;5ms Traverse</span>
-              </div>
-            </Card>
+            <ScrollReveal direction="up" delay={100}>
+              <Card surface="primary" className="p-6 space-y-4 h-full">
+                <div className="w-10 h-10 rounded-xl bg-[#321E17] border border-[#FF6B35]/40 flex items-center justify-center text-[#FF8559]">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-mono text-[#F5F5F5]">
+                    1. FalkorDB Graph Theoretic Core
+                  </h3>
+                  <p className="text-xs text-[#858E9B] font-sans mt-2 leading-relaxed">
+                    Stores enterprise identities, cloud permissions, firewall rules, and known vulnerabilities as a directed property graph. Leverages sparse GraphBLAS linear algebra matrices for sub-5 millisecond multi-hop path traversal.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-[#2A3038] text-[11px] font-mono text-[#B0B7C3] flex items-center justify-between">
+                  <span>Index Engine: Sparse Matrix GraphBLAS</span>
+                  <span className="text-[#34D399] font-bold">&lt;5ms Traverse</span>
+                </div>
+              </Card>
+            </ScrollReveal>
 
-            <Card surface="primary" className="p-6 space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-[#321E17] border border-[#FF6B35]/40 flex items-center justify-center text-[#FF8559]">
-                <Workflow className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold font-mono text-[#F5F5F5]">
-                  2. Minimum-Cut Containment Engine
-                </h3>
-                <p className="text-xs text-[#858E9B] font-sans mt-2 leading-relaxed">
-                  Instead of panicking and isolating an entire production subnet, TRACEFORGE computes the exact min-cut capacity. It severs only the minimal edges required to starve the attack, preserving normal business operations.
-                </p>
-              </div>
-              <div className="pt-2 border-t border-[#2A3038] text-[11px] font-mono text-[#B0B7C3] flex items-center justify-between">
-                <span>Theorem: Edmonds-Karp / Max-Flow Min-Cut</span>
-                <span className="text-[#34D399] font-bold">0% Collateral Outage</span>
-              </div>
-            </Card>
+            <ScrollReveal direction="up" delay={200}>
+              <Card surface="primary" className="p-6 space-y-4 h-full">
+                <div className="w-10 h-10 rounded-xl bg-[#321E17] border border-[#FF6B35]/40 flex items-center justify-center text-[#FF8559]">
+                  <Workflow className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-mono text-[#F5F5F5]">
+                    2. Minimum-Cut Containment Engine
+                  </h3>
+                  <p className="text-xs text-[#858E9B] font-sans mt-2 leading-relaxed">
+                    Instead of panicking and isolating an entire production subnet, TRACEFORGE computes the exact min-cut capacity. It severs only the minimal edges required to starve the attack, preserving normal business operations.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-[#2A3038] text-[11px] font-mono text-[#B0B7C3] flex items-center justify-between">
+                  <span>Theorem: Edmonds-Karp / Max-Flow Min-Cut</span>
+                  <span className="text-[#34D399] font-bold">0% Collateral Outage</span>
+                </div>
+              </Card>
+            </ScrollReveal>
 
-            <Card surface="primary" className="p-6 space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-[#321E17] border border-[#FF6B35]/40 flex items-center justify-center text-[#FF8559]">
-                <Cpu className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold font-mono text-[#F5F5F5]">
-                  3. Model Context Protocol (MCP) Multi-Agent
-                </h3>
-                <p className="text-xs text-[#858E9B] font-sans mt-2 leading-relaxed">
-                  Nine native MCP security tools orchestrate autonomous reasoning. LLMs and forensic agents invoke standardized schema endpoints without hallucinating attack routes or bypassing security policy guardrails.
-                </p>
-              </div>
-              <div className="pt-2 border-t border-[#2A3038] text-[11px] font-mono text-[#B0B7C3] flex items-center justify-between">
-                <span>Standard: Anthropic Model Context Protocol</span>
-                <span className="text-[#60A5FA] font-bold">9 Native Tools</span>
-              </div>
-            </Card>
+            <ScrollReveal direction="up" delay={300}>
+              <Card surface="primary" className="p-6 space-y-4 h-full">
+                <div className="w-10 h-10 rounded-xl bg-[#321E17] border border-[#FF6B35]/40 flex items-center justify-center text-[#FF8559]">
+                  <Cpu className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-mono text-[#F5F5F5]">
+                    3. Model Context Protocol (MCP) Multi-Agent
+                  </h3>
+                  <p className="text-xs text-[#858E9B] font-sans mt-2 leading-relaxed">
+                    Nine native MCP security tools orchestrate autonomous reasoning. LLMs and forensic agents invoke standardized schema endpoints without hallucinating attack routes or bypassing security policy guardrails.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-[#2A3038] text-[11px] font-mono text-[#B0B7C3] flex items-center justify-between">
+                  <span>Standard: Anthropic Model Context Protocol</span>
+                  <span className="text-[#60A5FA] font-bold">9 Native Tools</span>
+                </div>
+              </Card>
+            </ScrollReveal>
 
-            <Card surface="primary" className="p-6 space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-[#321E17] border border-[#FF6B35]/40 flex items-center justify-center text-[#FF8559]">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold font-mono text-[#F5F5F5]">
-                  4. 100% Production Isolation (Read-Only Prod)
-                </h3>
-                <p className="text-xs text-[#858E9B] font-sans mt-2 leading-relaxed">
-                  Production topology is strictly read-only. Containment hypotheses and firewall mutations run inside ephemeral simulation sandboxes (<code className="text-[#B0B7C3] font-mono">tf-sim-*</code>). No policy changes touch live infra without explicit SOC analyst authorization.
-                </p>
-              </div>
-              <div className="pt-2 border-t border-[#2A3038] text-[11px] font-mono text-[#B0B7C3] flex items-center justify-between">
-                <span>Guardrail: Ephemeral Sandbox Forking</span>
-                <span className="text-[#34D399] font-bold">HITL Gated</span>
-              </div>
-            </Card>
+            <ScrollReveal direction="up" delay={400}>
+              <Card surface="primary" className="p-6 space-y-4 h-full">
+                <div className="w-10 h-10 rounded-xl bg-[#321E17] border border-[#FF6B35]/40 flex items-center justify-center text-[#FF8559]">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-mono text-[#F5F5F5]">
+                    4. 100% Production Isolation (Read-Only Prod)
+                  </h3>
+                  <p className="text-xs text-[#858E9B] font-sans mt-2 leading-relaxed">
+                    Production topology is strictly read-only. Containment hypotheses and firewall mutations run inside ephemeral simulation sandboxes (<code className="text-[#B0B7C3] font-mono">tf-sim-*</code>). No policy changes touch live infra without explicit SOC analyst authorization.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-[#2A3038] text-[11px] font-mono text-[#B0B7C3] flex items-center justify-between">
+                  <span>Guardrail: Ephemeral Sandbox Forking</span>
+                  <span className="text-[#34D399] font-bold">HITL Gated</span>
+                </div>
+              </Card>
+            </ScrollReveal>
           </div>
         </section>
 
@@ -275,18 +357,20 @@ export const LandingPage: React.FC = () => {
         {/* 8. HOW TRACEFORGE WORKS IN 5 STAGES */}
         {/* ========================================================================= */}
         <section id="pipeline" className="space-y-6">
-          <div className="border-b border-[#2A3038] pb-4">
-            <div className="flex items-center gap-2 text-xs font-mono text-[#FF8559] uppercase tracking-wider mb-1">
-              <GitBranch className="w-4 h-4" />
-              <span>End-to-End Operational Workflow</span>
+          <ScrollReveal direction="up" delay={50}>
+            <div className="border-b border-[#2A3038] pb-4">
+              <div className="flex items-center gap-2 text-xs font-mono text-[#FF8559] uppercase tracking-wider mb-1">
+                <GitBranch className="w-4 h-4" />
+                <span>End-to-End Operational Workflow</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
+                How TRACEFORGE Works in 5 Stages
+              </h2>
+              <p className="text-xs text-[#858E9B] mt-1 font-sans">
+                The continuous pipeline from multi-cloud telemetry ingestion to verified human-in-the-loop containment.
+              </p>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
-              How TRACEFORGE Works in 5 Stages
-            </h2>
-            <p className="text-xs text-[#858E9B] mt-1 font-sans">
-              The continuous pipeline from multi-cloud telemetry ingestion to verified human-in-the-loop containment.
-            </p>
-          </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {[
@@ -320,22 +404,23 @@ export const LandingPage: React.FC = () => {
                 desc: 'SecOps analyst reviews structured containment proposals, business impact scores, and authorizes action.',
                 badge: 'Analyst Gate',
               },
-            ].map(stage => (
-              <div
-                key={stage.step}
-                className="p-5 rounded-xl bg-[#121519] border border-[#2A3038] space-y-3 flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-[#FF8559]">{stage.step}</span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#191D22] text-[#B0B7C3] border border-[#2A3038]">
-                      {stage.badge}
-                    </span>
+            ].map((stage, idx) => (
+              <ScrollReveal key={stage.step} delay={idx * 100} direction="up">
+                <div
+                  className="p-5 rounded-xl bg-[#121519] border border-[#2A3038] space-y-3 flex flex-col justify-between h-full"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-[#FF8559]">{stage.step}</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#191D22] text-[#B0B7C3] border border-[#2A3038]">
+                        {stage.badge}
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-bold font-mono text-[#F5F5F5]">{stage.title}</h4>
+                    <p className="text-[11px] text-[#858E9B] font-sans leading-relaxed">{stage.desc}</p>
                   </div>
-                  <h4 className="text-xs font-bold font-mono text-[#F5F5F5]">{stage.title}</h4>
-                  <p className="text-[11px] text-[#858E9B] font-sans leading-relaxed">{stage.desc}</p>
                 </div>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </section>
@@ -344,18 +429,20 @@ export const LandingPage: React.FC = () => {
         {/* 9. BUILT ON MODEL CONTEXT PROTOCOL (MCP) */}
         {/* ========================================================================= */}
         <section id="mcp" className="space-y-6">
-          <div className="border-b border-[#2A3038] pb-4">
-            <div className="flex items-center gap-2 text-xs font-mono text-[#FF8559] uppercase tracking-wider mb-1">
-              <Cpu className="w-4 h-4" />
-              <span>Tool Specification</span>
+          <ScrollReveal direction="up" delay={50}>
+            <div className="border-b border-[#2A3038] pb-4">
+              <div className="flex items-center gap-2 text-xs font-mono text-[#FF8559] uppercase tracking-wider mb-1">
+                <Cpu className="w-4 h-4" />
+                <span>Tool Specification</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
+                Built on Model Context Protocol (MCP)
+              </h2>
+              <p className="text-xs text-[#858E9B] mt-1 font-sans">
+                Nine native MCP security tools enable autonomous agents to reason over graph topology, discover attack paths, and verify containment safety.
+              </p>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
-              Built on Model Context Protocol (MCP)
-            </h2>
-            <p className="text-xs text-[#858E9B] mt-1 font-sans">
-              Nine native MCP security tools enable autonomous agents to reason over graph topology, discover attack paths, and verify containment safety.
-            </p>
-          </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
@@ -404,19 +491,20 @@ export const LandingPage: React.FC = () => {
                 desc: 'Persists post-incident containment resolutions into long-term organizational defense memory.',
                 type: 'Adaptive Learning',
               },
-            ].map(tool => (
-              <div
-                key={tool.name}
-                className="p-4 rounded-xl bg-[#121519] border border-[#2A3038] space-y-2 font-mono text-xs"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[#FF8559] font-bold">{tool.name}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#191D22] text-[#858E9B] border border-[#2A3038]">
-                    {tool.type}
-                  </span>
+            ].map((tool, idx) => (
+              <ScrollReveal key={tool.name} delay={(idx % 3) * 100} direction="up">
+                <div
+                  className="p-4 rounded-xl bg-[#121519] border border-[#2A3038] space-y-2 font-mono text-xs h-full"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#FF8559] font-bold">{tool.name}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#191D22] text-[#858E9B] border border-[#2A3038]">
+                      {tool.type}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#858E9B] font-sans leading-relaxed">{tool.desc}</p>
                 </div>
-                <p className="text-[11px] text-[#858E9B] font-sans leading-relaxed">{tool.desc}</p>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </section>
@@ -425,83 +513,89 @@ export const LandingPage: React.FC = () => {
         {/* 10. ARCHITECTURAL COMPARISON MATRIX */}
         {/* ========================================================================= */}
         <section id="comparison" className="space-y-6">
-          <div className="border-b border-[#2A3038] pb-4">
-            <div className="flex items-center gap-2 text-xs font-mono text-[#FF8559] uppercase tracking-wider mb-1">
-              <ShieldAlert className="w-4 h-4" />
-              <span>Technical Benchmark</span>
+          <ScrollReveal direction="up" delay={50}>
+            <div className="border-b border-[#2A3038] pb-4">
+              <div className="flex items-center gap-2 text-xs font-mono text-[#FF8559] uppercase tracking-wider mb-1">
+                <ShieldAlert className="w-4 h-4" />
+                <span>Technical Benchmark</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
+                Architectural Comparison Matrix
+              </h2>
+              <p className="text-xs text-[#858E9B] mt-1 font-sans">
+                How TRACEFORGE compares against traditional SecOps paradigms.
+              </p>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
-              Architectural Comparison Matrix
-            </h2>
-            <p className="text-xs text-[#858E9B] mt-1 font-sans">
-              How TRACEFORGE compares against traditional SecOps paradigms.
-            </p>
-          </div>
+          </ScrollReveal>
 
-          <div className="w-full overflow-x-auto rounded-xl border border-[#2A3038] bg-[#121519]">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-[#191D22] text-[#B0B7C3] uppercase tracking-wider border-b border-[#2A3038]">
-                <tr>
-                  <th className="px-4 py-3.5">Capability</th>
-                  <th className="px-4 py-3.5 text-[#FF8559]">TRACEFORGE</th>
-                  <th className="px-4 py-3.5 text-[#858E9B]">Legacy SIEM</th>
-                  <th className="px-4 py-3.5 text-[#858E9B]">SOAR Playbooks</th>
-                  <th className="px-4 py-3.5 text-[#858E9B]">Black-Box AI</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#2A3038]">
-                <tr>
-                  <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Core Topology Representation</td>
-                  <td className="px-4 py-3 text-[#34D399]">Directed Property Graph (FalkorDB)</td>
-                  <td className="px-4 py-3 text-[#858E9B]">Flat Relational Logs</td>
-                  <td className="px-4 py-3 text-[#858E9B]">Hardcoded Script Variables</td>
-                  <td className="px-4 py-3 text-[#858E9B]">Unstructured Prompts</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Lateral Path Traversal</td>
-                  <td className="px-4 py-3 text-[#34D399]">&lt;5ms GraphBLAS Cypher</td>
-                  <td className="px-4 py-3 text-[#FB7185]">Manual Analyst Queries (Hours)</td>
-                  <td className="px-4 py-3 text-[#FB7185]">Brittle 1-Hop Webhooks</td>
-                  <td className="px-4 py-3 text-[#FBBF24]">Hallucinated Routes</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Containment Action Selection</td>
-                  <td className="px-4 py-3 text-[#34D399]">Edmonds-Karp Minimum-Cut</td>
-                  <td className="px-4 py-3 text-[#FB7185]">None (Alert Only)</td>
-                  <td className="px-4 py-3 text-[#FBBF24]">Disconnect Entire Subnet</td>
-                  <td className="px-4 py-3 text-[#FB7185]">Unverified Mutations</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Production Safety Policy</td>
-                  <td className="px-4 py-3 text-[#34D399]">Strict Read-Only + Sandbox Fork</td>
-                  <td className="px-4 py-3 text-[#858E9B]">Passive Read-Only</td>
-                  <td className="px-4 py-3 text-[#FB7185]">Mutates Live Production Directly</td>
-                  <td className="px-4 py-3 text-[#FB7185]">Unpredictable Live Execution</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Human In The Loop (HITL)</td>
-                  <td className="px-4 py-3 text-[#34D399]">Formal Approval Gate with Proposal Diff</td>
-                  <td className="px-4 py-3 text-[#858E9B]">Manual Execution Required</td>
-                  <td className="px-4 py-3 text-[#FBBF24]">Post-Action Alert Only</td>
-                  <td className="px-4 py-3 text-[#FB7185]">No Gate (Auto-Executes)</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <ScrollReveal direction="scale" delay={80}>
+            <div className="w-full overflow-x-auto rounded-xl border border-[#2A3038] bg-[#121519]">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-[#191D22] text-[#B0B7C3] uppercase tracking-wider border-b border-[#2A3038]">
+                  <tr>
+                    <th className="px-4 py-3.5">Capability</th>
+                    <th className="px-4 py-3.5 text-[#FF8559]">TRACEFORGE</th>
+                    <th className="px-4 py-3.5 text-[#858E9B]">Legacy SIEM</th>
+                    <th className="px-4 py-3.5 text-[#858E9B]">SOAR Playbooks</th>
+                    <th className="px-4 py-3.5 text-[#858E9B]">Black-Box AI</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2A3038]">
+                  <tr>
+                    <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Core Topology Representation</td>
+                    <td className="px-4 py-3 text-[#34D399]">Directed Property Graph (FalkorDB)</td>
+                    <td className="px-4 py-3 text-[#858E9B]">Flat Relational Logs</td>
+                    <td className="px-4 py-3 text-[#858E9B]">Hardcoded Script Variables</td>
+                    <td className="px-4 py-3 text-[#858E9B]">Unstructured Prompts</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Lateral Path Traversal</td>
+                    <td className="px-4 py-3 text-[#34D399]">&lt;5ms GraphBLAS Cypher</td>
+                    <td className="px-4 py-3 text-[#FB7185]">Manual Analyst Queries (Hours)</td>
+                    <td className="px-4 py-3 text-[#FB7185]">Brittle 1-Hop Webhooks</td>
+                    <td className="px-4 py-3 text-[#FBBF24]">Hallucinated Routes</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Containment Action Selection</td>
+                    <td className="px-4 py-3 text-[#34D399]">Edmonds-Karp Minimum-Cut</td>
+                    <td className="px-4 py-3 text-[#FB7185]">None (Alert Only)</td>
+                    <td className="px-4 py-3 text-[#FBBF24]">Disconnect Entire Subnet</td>
+                    <td className="px-4 py-3 text-[#FB7185]">Unverified Mutations</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Production Safety Policy</td>
+                    <td className="px-4 py-3 text-[#34D399]">Strict Read-Only + Sandbox Fork</td>
+                    <td className="px-4 py-3 text-[#858E9B]">Passive Read-Only</td>
+                    <td className="px-4 py-3 text-[#FB7185]">Mutates Live Production Directly</td>
+                    <td className="px-4 py-3 text-[#FB7185]">Unpredictable Live Execution</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-[#F5F5F5] font-semibold">Human In The Loop (HITL)</td>
+                    <td className="px-4 py-3 text-[#34D399]">Formal Approval Gate with Proposal Diff</td>
+                    <td className="px-4 py-3 text-[#858E9B]">Manual Execution Required</td>
+                    <td className="px-4 py-3 text-[#FBBF24]">Post-Action Alert Only</td>
+                    <td className="px-4 py-3 text-[#FB7185]">No Gate (Auto-Executes)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </ScrollReveal>
         </section>
 
         {/* ========================================================================= */}
         {/* 11. ENTERPRISE PLATFORM MODULES */}
         {/* ========================================================================= */}
         <section className="space-y-6">
-          <div className="border-b border-[#2A3038] pb-4">
-            <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
-              Console Platform Modules
-            </h2>
-            <p className="text-xs text-[#858E9B] mt-1 font-sans">
-              Direct access to all security engineering workspaces.
-            </p>
-          </div>
+          <ScrollReveal direction="up" delay={50}>
+            <div className="border-b border-[#2A3038] pb-4">
+              <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#F5F5F5]">
+                Console Platform Modules
+              </h2>
+              <p className="text-xs text-[#858E9B] mt-1 font-sans">
+                Direct access to all security engineering workspaces.
+              </p>
+            </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
@@ -553,24 +647,25 @@ export const LandingPage: React.FC = () => {
                 icon: <FolderArchive className="w-5 h-5 text-[#FBBF24]" />,
                 desc: 'Analyst triage queues and human-in-the-loop containment approvals.',
               },
-            ].map(mod => (
-              <div
-                key={mod.title}
-                onClick={() => navigate(mod.path)}
-                className="p-5 rounded-xl bg-[#121519] border border-[#2A3038] hover:border-[#FF6B35]/50 transition-all duration-180 cursor-pointer space-y-3 group"
-              >
-                <div className="p-2.5 rounded-lg bg-[#191D22] border border-[#2A3038] inline-flex">
-                  {mod.icon}
+            ].map((mod, idx) => (
+              <ScrollReveal key={mod.title} delay={(idx % 4) * 80} direction="up">
+                <div
+                  onClick={() => navigate(mod.path)}
+                  className="p-5 rounded-xl bg-[#121519] border border-[#2A3038] hover:border-[#FF6B35]/50 transition-all duration-180 cursor-pointer space-y-3 group h-full"
+                >
+                  <div className="p-2.5 rounded-lg bg-[#191D22] border border-[#2A3038] inline-flex">
+                    {mod.icon}
+                  </div>
+                  <h4 className="text-sm font-bold font-mono text-[#F5F5F5] group-hover:text-[#FF8559] transition-colors">
+                    {mod.title}
+                  </h4>
+                  <p className="text-xs text-[#858E9B] font-sans leading-relaxed">{mod.desc}</p>
+                  <div className="pt-2 text-[11px] font-mono text-[#858E9B] group-hover:text-[#FF8559] flex items-center gap-1 transition-colors">
+                    <span>Enter workspace</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-                <h4 className="text-sm font-bold font-mono text-[#F5F5F5] group-hover:text-[#FF8559] transition-colors">
-                  {mod.title}
-                </h4>
-                <p className="text-xs text-[#858E9B] font-sans leading-relaxed">{mod.desc}</p>
-                <div className="pt-2 text-[11px] font-mono text-[#858E9B] group-hover:text-[#FF8559] flex items-center gap-1 transition-colors">
-                  <span>Enter workspace</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </section>
@@ -578,27 +673,29 @@ export const LandingPage: React.FC = () => {
         {/* ========================================================================= */}
         {/* 12. CONVERSION CALL TO ACTION */}
         {/* ========================================================================= */}
-        <section className="p-8 sm:p-12 rounded-2xl bg-[#121519] border border-[#2A3038] text-center space-y-6 relative overflow-hidden">
-          <div className="max-w-2xl mx-auto space-y-3">
-            <h2 className="text-2xl sm:text-4xl font-extrabold font-mono text-[#F5F5F5] tracking-tight">
-              Ready to eliminate lateral attack paths in your enterprise?
-            </h2>
-            <p className="text-sm text-[#858E9B] font-sans leading-relaxed">
-              Launch the production dashboard to inspect your topology, verify active attack paths, or simulate minimum-cut containment in a disposable sandbox.
-            </p>
-          </div>
+        <ScrollReveal direction="scale" delay={80}>
+          <section className="p-8 sm:p-12 rounded-2xl bg-[#121519] border border-[#2A3038] text-center space-y-6 relative overflow-hidden">
+            <div className="max-w-2xl mx-auto space-y-3">
+              <h2 className="text-2xl sm:text-4xl font-extrabold font-mono text-[#F5F5F5] tracking-tight">
+                Ready to eliminate lateral attack paths in your enterprise?
+              </h2>
+              <p className="text-sm text-[#858E9B] font-sans leading-relaxed">
+                Launch the production dashboard to inspect your topology, verify active attack paths, or simulate minimum-cut containment in a disposable sandbox.
+              </p>
+            </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 font-mono text-xs">
-            <Button variant="primary" size="lg" onClick={() => navigate('/dashboard')}>
-              <Play className="w-4 h-4 mr-2 fill-current" />
-              Launch Console Dashboard (/dashboard)
-            </Button>
-            <Button variant="outline" size="lg" onClick={() => navigate('/login')}>
-              <Lock className="w-4 h-4 mr-2 text-[#FF8559]" />
-              Switch Analyst Role (/login)
-            </Button>
-          </div>
-        </section>
+            <div className="flex flex-wrap items-center justify-center gap-4 font-mono text-xs">
+              <Button variant="primary" size="lg" onClick={() => navigate('/dashboard')}>
+                <Play className="w-4 h-4 mr-2 fill-current" />
+                Launch Console Dashboard (/dashboard)
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => navigate('/login')}>
+                <Lock className="w-4 h-4 mr-2 text-[#FF8559]" />
+                Switch Analyst Role (/login)
+              </Button>
+            </div>
+          </section>
+        </ScrollReveal>
       </main>
 
       {/* ========================================================================= */}
