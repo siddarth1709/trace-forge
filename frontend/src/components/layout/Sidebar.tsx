@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { NAVIGATION_ITEMS } from '../../lib/constants.ts'
 import { useBackendHealth } from '../../hooks/useBackendHealth.ts'
+import { getApiBaseUrl, setApiBaseUrl } from '../../api/client.ts'
 import { cn } from '../../lib/utils.ts'
 
 interface SidebarProps {
@@ -27,7 +28,23 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { isOnline, health } = useBackendHealth()
+  const { isOnline, health, refetch } = useBackendHealth()
+  const [isConfigOpen, setIsConfigOpen] = React.useState(false)
+  const [customUrl, setCustomUrl] = React.useState(getApiBaseUrl())
+
+  const handleSaveUrl = (e: React.FormEvent) => {
+    e.preventDefault()
+    setApiBaseUrl(customUrl.trim())
+    setIsConfigOpen(false)
+    refetch()
+  }
+
+  const handleResetUrl = () => {
+    setApiBaseUrl('')
+    setCustomUrl(getApiBaseUrl())
+    setIsConfigOpen(false)
+    refetch()
+  }
 
   const iconMap: Record<string, React.ReactNode> = {
     LayoutDashboard: <LayoutDashboard className="w-4 h-4" />,
@@ -135,7 +152,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Backend health status footer */}
         <div className="p-4 border-t border-[#2A3038] bg-[#0B0D0F]">
-          <div className="p-3 rounded-xl bg-[#121519] border border-[#2A3038] flex items-center justify-between">
+          <div
+            onClick={() => setIsConfigOpen((prev) => !prev)}
+            className="p-3 rounded-xl bg-[#121519] border border-[#2A3038] flex items-center justify-between cursor-pointer hover:border-[#3D4653] transition-colors"
+            title="Click to configure backend API endpoint"
+          >
             <div className="flex items-center gap-2.5">
               <span className="relative flex h-2 w-2">
                 <span
@@ -159,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </span>
                 </div>
                 <div className="text-[10px] font-mono text-[#858E9B]">
-                  {health ? `Graph: ${health.graph}` : 'Reconnecting...'}
+                  {health ? `Graph: ${health.graph}` : 'Click to configure API...'}
                 </div>
               </div>
             </div>
@@ -171,6 +192,43 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               )}
             />
           </div>
+
+          {isConfigOpen && (
+            <form onSubmit={handleSaveUrl} className="mt-2.5 p-3 rounded-xl bg-[#171B21] border border-[#2A3038] space-y-2 text-xs">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[#858E9B] flex items-center justify-between">
+                <span>API Endpoint Target</span>
+                <button
+                  type="button"
+                  onClick={handleResetUrl}
+                  className="text-[10px] text-[#FF8559] hover:underline"
+                >
+                  Reset Default
+                </button>
+              </div>
+              <input
+                type="text"
+                value={customUrl}
+                onChange={(e) => setCustomUrl(e.target.value)}
+                placeholder="https://traceforge-backend.onrender.com"
+                className="w-full px-2.5 py-1.5 rounded-lg bg-[#0B0D0F] border border-[#2A3038] text-[11px] font-mono text-[#F5F5F5] focus:border-[#FF8559] focus:outline-none"
+              />
+              <div className="flex gap-1.5 pt-1">
+                <button
+                  type="submit"
+                  className="flex-1 px-2 py-1 rounded bg-[#FF8559] text-black font-medium text-[10px] hover:bg-[#ff9975] transition-colors"
+                >
+                  Save & Connect
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsConfigOpen(false)}
+                  className="px-2 py-1 rounded bg-[#2A3038] text-[#858E9B] text-[10px] hover:text-white"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </aside>
     </>

@@ -15,13 +15,15 @@ services:
       - key: TF_NAME_KEY
         value: name
       - key: FALKOR_HOST
-        value: localhost
+        value: r-6jissuruar.instance-1064q3xyh.hc-7up0crkyn.ap-south-1.aws.f2e0a955bb84.cloud
       - key: FALKOR_PORT
-        value: "6379"
-      - key: FALKOR_URL
-        sync: false
+        value: "50916"
+      - key: FALKOR_USERNAME
+        value: falkordb
       - key: FALKOR_PASSWORD
-        sync: false
+        value: 2yxuOEMV07Gt
+      - key: FALKOR_SSL
+        value: "0"
       - key: CORS_ALLOW_ALL
         value: "1"
       - key: ANTHROPIC_API_KEY

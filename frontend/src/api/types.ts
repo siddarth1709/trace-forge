@@ -479,15 +479,79 @@ export interface FullCase {
     evidence: Array<{ evidence: string; relation: string; weight: number }>
   }>
   decision: { act: boolean; reason: string } | null
+  finding?: {
+    summary: string
+    reachable_paths_count: number
+    reachable_paths: PathRec[]
+    observed_facts: string[]
+    assumptions: string[]
+    risk_explanation: string
+    rationale: string
+    proposed_interventions: Array<{
+      action: string
+      source: string
+      destination: string
+      relationship: string
+      benign_load: number
+      rationale: string
+    }>
+    confidence: number
+    confidence_and_limitations: {
+      confidence_score: number
+      confidence_level: string
+      confidence_basis: string
+      limitations: string[]
+    }
+    verification_criteria: {
+      required_residual_paths: number
+      success_verdict: string
+      required_status: string
+      description: string
+    }
+  }
   proposal: {
     cut: ContainmentAction[]
     size: number
     disruption: number
     paths_before: number
+    finding?: any
+    observed_facts?: string[]
+    assumptions?: string[]
+    rationale?: string
+    verification_criteria?: {
+      required_residual_paths: number
+      success_verdict: string
+      required_status: string
+      description: string
+    }
+    confidence_and_limitations?: {
+      confidence_score: number
+      confidence_level: string
+      confidence_basis: string
+      limitations: string[]
+    }
   } | null
   paths?: PathRec[]
   risk?: { score: number; version: string }
+  simulation?: {
+    sim_id: string
+    src_graph: string
+    clone_method: string
+    applied: number
+    actions: ContainmentAction[]
+    simulation_scope: string
+  }
   verification?: VerificationResult
+  contained?: boolean
+  verification_status?: 'VERIFIED' | 'PARTIAL' | 'FAILED' | 'REJECTED' | string
+  simulation_scope?: string
+  production_modified?: boolean
+  audit_record?: Record<string, any>
+  approval?: {
+    approved: boolean
+    approver: string
+    ts: number
+  }
   report?: {
     summary: string
     summary_source: string

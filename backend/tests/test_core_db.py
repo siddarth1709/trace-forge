@@ -15,7 +15,11 @@ pytestmark = pytest.mark.skipif(not DB_UP, reason="FalkorDB not reachable")
 
 @pytest.fixture(scope="module")
 def spec():
-    return build_variant(core.db, "tf-test", seed=7, footholds=4, chain=2, apps=1)
+    old_prod = core.PROD
+    core.PROD = "tf-test"
+    s = build_variant(core.db, "tf-test", seed=7, footholds=4, chain=2, apps=1)
+    yield s
+    core.PROD = old_prod
 
 
 def test_graph_paths_match_ground_truth(spec):

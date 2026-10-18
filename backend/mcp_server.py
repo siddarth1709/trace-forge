@@ -4,9 +4,12 @@ import re
 from typing import Any, Dict, List, Optional
 
 try:
-    from mcp.server.fastmcp import FastMCP
+    try:
+        from mcp.server.mcpserver import MCPServer as FastMCP
+    except ImportError:
+        from mcp.server.fastmcp import FastMCP
     mcp = FastMCP("traceforge")
-except ImportError:
+except Exception:
     class DummyFastMCP:
         def __init__(self, *args, **kwargs):
             pass

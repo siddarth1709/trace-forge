@@ -36,17 +36,53 @@ export interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined | null>
 }
 
-// Configurable API base URL, defaults to local backend
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '')
-
 export function getApiBaseUrl(): string {
-  return API_BASE_URL
+  if (typeof window !== 'undefined') {
+    // 1. URL parameter override: ?api=https://...
+    try {
+      const urlParams = new URLSearchParams(window.location.search)
+      const queryApi = urlParams.get('api')
+      if (queryApi) {
+        const cleaned = queryApi.replace(/\/+$/, '')
+        localStorage.setItem('tf_api_url', cleaned)
+        return cleaned
+      }
+    } catch {
+      // ignore
+    }
+
+    // 2. localStorage saved override
+    try {
+      const saved = localStorage.getItem('tf_api_url')
+      if (saved) return saved.replace(/\/+$/, '')
+    } catch {
+      // ignore
+    }
+  }
+
+  // 3. Environment variable configured at build time
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')
+  }
+
+  return 'http://127.0.0.1:8000'
+}
+
+export function setApiBaseUrl(newUrl: string): void {
+  if (typeof window !== 'undefined') {
+    if (!newUrl) {
+      localStorage.removeItem('tf_api_url')
+    } else {
+      localStorage.setItem('tf_api_url', newUrl.replace(/\/+$/, ''))
+    }
+  }
 }
 
 async function request<T>(method: string, path: string, body?: unknown, options: RequestOptions = {}): Promise<T> {
-  const { timeoutMs = 20000, params, ...customInit } = options
+  const { timeoutMs = 45000, params, ...customInit } = options
 
-  let url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`
+  const baseUrl = getApiBaseUrl()
+  let url = `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`
 
   if (params) {
     const searchParams = new URLSearchParams()

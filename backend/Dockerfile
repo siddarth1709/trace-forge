@@ -15,9 +15,14 @@ RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 COPY backend /app/backend
 
 ENV PYTHONPATH=/app/backend
-ENV FALKOR_HOST=falkordb
-ENV FALKOR_PORT=6379
+ENV FALKOR_HOST=r-6jissuruar.instance-1064q3xyh.hc-7up0crkyn.ap-south-1.aws.f2e0a955bb84.cloud
+ENV FALKOR_PORT=50916
+ENV FALKOR_USERNAME=falkordb
+ENV FALKOR_PASSWORD=2yxuOEMV07Gt
+ENV FALKOR_SSL=0
 ENV TF_GRAPH=traceforge
+ENV TF_MODE=live
+ENV CORS_ALLOW_ALL=1
 
 EXPOSE 8000
 

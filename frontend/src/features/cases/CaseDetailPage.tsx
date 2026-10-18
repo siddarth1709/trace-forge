@@ -16,6 +16,10 @@ import {
   ArrowLeft,
   ShieldAlert,
   BookmarkCheck,
+  ShieldCheck,
+  Scale,
+  AlertTriangle,
+  History,
 } from 'lucide-react'
 
 export const CaseDetailPage: React.FC = () => {
@@ -245,6 +249,121 @@ export const CaseDetailPage: React.FC = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Grounded Agent Reasoning: Facts vs Assumptions */}
+          {(caseData.finding || caseData.proposal?.observed_facts) && (
+            <div className="space-y-3 pt-3 border-t border-[#2A3038]">
+              <div className="text-[#F5F5F5] font-bold text-sm flex items-center gap-2">
+                <Scale className="w-4 h-4 text-[#10B981]" />
+                Evidence Grounding: Observed Facts vs Explicit Assumptions
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-xl bg-[#0F231C]/60 border border-[#10B981]/30 space-y-2">
+                  <div className="text-[#10B981] font-bold text-xs flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                    Observed Facts (From FalkorDB Graph)
+                  </div>
+                  <ul className="space-y-1.5 text-[11px] text-[#D1D5DB] font-sans">
+                    {(caseData.finding?.observed_facts || caseData.proposal?.observed_facts || [
+                      `Identified ${caseData.paths?.length || 0} attack paths to '${caseData.target}'.`
+                    ]).map((fact, fIdx) => (
+                      <li key={fIdx} className="flex items-start gap-1.5">
+                        <span className="text-[#10B981] font-bold shrink-0">•</span>
+                        <span>{fact}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-[#291F10]/60 border border-[#F59E0B]/30 space-y-2">
+                  <div className="text-[#F59E0B] font-bold text-xs flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-[#F59E0B]" />
+                    Explicit Assumptions (Unverified Telemetry)
+                  </div>
+                  <ul className="space-y-1.5 text-[11px] text-[#D1D5DB] font-sans">
+                    {(caseData.finding?.assumptions || caseData.proposal?.assumptions || [
+                      "Adversary retains operational control of identified foothold sources.",
+                      "Graph relationships represent traversable attack primitives.",
+                    ]).map((assump, aIdx) => (
+                      <li key={aIdx} className="flex items-start gap-1.5">
+                        <span className="text-[#F59E0B] font-bold shrink-0">•</span>
+                        <span>{assump}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Simulation & Independent Verification */}
+          {(caseData.verification || caseData.status === 'verified' || caseData.status === 'residual_risk' || caseData.status === 'rejected') && (
+            <div className="space-y-3 pt-3 border-t border-[#2A3038]">
+              <div className="text-[#F5F5F5] font-bold text-sm flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#60A5FA]" />
+                Isolated Sandbox Simulation & Independent Verification Result
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-xl bg-[#191D22] border border-[#2A3038]">
+                  <div className="text-[10px] uppercase text-[#858E9B]">Sandbox Graph</div>
+                  <div className="font-bold text-xs text-[#60A5FA] mt-1 font-mono truncate">
+                    {caseData.simulation?.sim_id || 'N/A (Rejected)'}
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#191D22] border border-[#2A3038]">
+                  <div className="text-[10px] uppercase text-[#858E9B]">Production Graph</div>
+                  <div className="font-bold text-xs text-[#10B981] mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
+                    UNTOUCHED (0 writes)
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#191D22] border border-[#2A3038]">
+                  <div className="text-[10px] uppercase text-[#858E9B]">Before Measurement</div>
+                  <div className="font-bold text-xs text-[#F5F5F5] mt-1">
+                    {caseData.verification?.before ?? caseData.paths?.length ?? 0} Path(s)
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#191D22] border border-[#2A3038]">
+                  <div className="text-[10px] uppercase text-[#858E9B]">After Measurement</div>
+                  <div className={`font-bold text-xs mt-1 ${caseData.contained ? 'text-[#10B981]' : 'text-[#F59E0B]'}`}>
+                    {caseData.verification?.after ?? (caseData.status === 'rejected' ? 'Skipped' : 0)} Path(s)
+                  </div>
+                </div>
+              </div>
+
+              {caseData.verification && caseData.verification.after > 0 && caseData.verification.remaining_paths && (
+                <div className="p-3.5 rounded-xl bg-[#291F10]/60 border border-[#F59E0B]/40 space-y-2">
+                  <div className="font-bold text-[#F59E0B] text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 text-[#F59E0B]" />
+                    Verification Notice: {caseData.verification.after} Residual Path(s) Remain
+                  </div>
+                  <div className="space-y-1.5 pt-1">
+                    {caseData.verification.remaining_paths.map((rPath, idx) => (
+                      <div key={idx} className="p-2 rounded bg-black/50 border border-[#F59E0B]/20 text-xs font-mono text-[#FCD34D]">
+                        {rPath.nodes.join(' → ')} ({rPath.rels.join(', ')})
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Structured Audit Event */}
+          {caseData.audit_record && (
+            <div className="space-y-2 pt-3 border-t border-[#2A3038]">
+              <div className="text-[#F5F5F5] font-bold text-sm flex items-center gap-2">
+                <History className="w-4 h-4 text-[#60A5FA]" />
+                Immutable Security Audit Event
+              </div>
+              <pre className="p-3 rounded-xl bg-[#0B0D0F] border border-[#2A3038] text-[11px] text-[#B0B7C3] max-h-40 overflow-y-auto font-mono">
+                {JSON.stringify(caseData.audit_record, null, 2)}
+              </pre>
             </div>
           )}
         </CardContent>

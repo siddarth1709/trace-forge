@@ -5,9 +5,10 @@ export function useBackendHealth() {
   const healthQuery = useQuery({
     queryKey: ['backend-health'],
     queryFn: () => healthApi.getHealth(),
-    refetchInterval: 15000,
-    retry: 2,
-    staleTime: 10000,
+    refetchInterval: 10000,
+    retry: 6,
+    retryDelay: (attemptIndex) => Math.min(2000 * (attemptIndex + 1), 10000),
+    staleTime: 8000,
   })
 
   const modeQuery = useQuery({

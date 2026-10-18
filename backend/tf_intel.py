@@ -11,7 +11,8 @@ RISK_WEIGHTS = {"criticality": 0.30, "exposure": 0.25, "confidence": 0.20, "rece
 CRITICALITY = {"critical": 1.0, "high": 0.75, "medium": 0.5}
 CASE_PREFIX = "tf-case-"
 
-def trace_paths(sources, target, as_of = None, graph = PROD):
+def trace_paths(sources, target, as_of = None, graph = None):
+    target_graph = graph or core.PROD
     for s in sources:
         _name(s)
     _name(target)
@@ -30,19 +31,20 @@ def trace_paths(sources, target, as_of = None, graph = PROD):
          + f"RETURN [n IN nodes(p) | n.{k}], [e IN rs | type(e)], [e IN rs | e.observed_at], "
          "[e IN rs | e.evidence_id], [e IN rs | e.confidence]")
 
-    rows = _ro(graph, q, {"sources": list(sources), "target": target, "t": t})
+    rows = _ro(target_graph, q, {"sources": list(sources), "target": target, "t": t})
     rows = sorted(rows, key=lambda r: (len(r[1]), [str(x) for x in r[0]]))
     paths = [{"id": f"P{i + 1}", "nodes": r[0], "rels": r[1], "times": r[2], "evidence": r[3], "confidence": r[4]}
              for i, r in enumerate(rows)]
-    return {"graph": graph, "as_of": as_of, "count": len(paths), "paths": paths}
+    return {"graph": target_graph, "as_of": as_of, "count": len(paths), "paths": paths}
 
 
 
-def get_evidence(ids, graph=PROD):
+def get_evidence(ids, graph=None):
     """Fetch evidence records by ID from the selected graph (read-only)."""
+    target_graph = graph or core.PROD
     ids = [_name(i) for i in ids]
     rows = _ro(
-        graph,
+        target_graph,
         f"MATCH (e) WHERE e.{NAME_KEY} IN $ids AND e.type = 'evidence' RETURN e",
         {"ids": ids},
     )
@@ -63,9 +65,9 @@ def get_evidence(ids, graph=PROD):
 
 def get_incident():
     k = NAME_KEY
-    rows = _ro(PROD, f"MATCH (i)-[:INCLUDES]->(a)-[:INVOLVES]->(n) WHERE i.type = 'incident' "
+    rows = _ro(core.PROD, f"MATCH (i)-[:INCLUDES]->(a)-[:INVOLVES]->(n) WHERE i.type = 'incident' "
                      f"RETURN i.{k}, i.severity, a.{k}, a.rule, n.{k}")
-    ev = _ro(PROD, f"MATCH (e)-[:ABOUT]->(a) WHERE e.type = 'evidence' AND a.type = 'alert' RETURN e.{k}")
+    ev = _ro(core.PROD, f"MATCH (e)-[:ABOUT]->(a) WHERE e.type = 'evidence' AND a.type = 'alert' RETURN e.{k}")
     evidence_ids = sorted({r[0] for r in ev})
     if not rows:
         return {"incident": None, "alerts": [], "alerted_entities": [], "evidence_ids": evidence_ids}
@@ -82,7 +84,7 @@ def connectivity(source, target):
 
 
 def node_facts(names):
-    rows = _ro(PROD, f"MATCH (n) WHERE n.{NAME_KEY} IN $names RETURN n", {"names": list(names)})
+    rows = _ro(core.PROD, f"MATCH (n) WHERE n.{NAME_KEY} IN $names RETURN n", {"names": list(names)})
     return {r[0].properties.get(NAME_KEY): dict(r[0].properties) for r in rows}
 
 

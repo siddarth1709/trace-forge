@@ -141,43 +141,46 @@ def _ro(graph: str, query: str, params: Optional[Dict[str, Any]] = None) -> List
 
 
 # ---- Graph inspection
-def schema(graph: str = PROD) -> Dict[str, Any]:
+def schema(graph: Optional[str] = None) -> Dict[str, Any]:
     """Inspect labels, relationship types, and size of a graph."""
+    target_graph = graph or PROD
     return {
-        "graph": graph,
+        "graph": target_graph,
         "name_key": NAME_KEY,
-        "labels": [r[0] for r in _ro(graph, "CALL db.labels()")],
-        "relationship_types": [r[0] for r in _ro(graph, "CALL db.relationshipTypes()")],
-        "property_keys": [r[0] for r in _ro(graph, "CALL db.propertyKeys()")],
-        "node_count": _ro(graph, "MATCH (n) RETURN count(n)")[0][0],
-        "edge_count": _ro(graph, "MATCH ()-[r]->() RETURN count(r)")[0][0],
+        "labels": [r[0] for r in _ro(target_graph, "CALL db.labels()")],
+        "relationship_types": [r[0] for r in _ro(target_graph, "CALL db.relationshipTypes()")],
+        "property_keys": [r[0] for r in _ro(target_graph, "CALL db.propertyKeys()")],
+        "node_count": _ro(target_graph, "MATCH (n) RETURN count(n)")[0][0],
+        "edge_count": _ro(target_graph, "MATCH ()-[r]->() RETURN count(r)")[0][0],
     }
 
 
-def graph_view(graph: str = PROD) -> Dict[str, Any]:
+def graph_view(graph: Optional[str] = None) -> Dict[str, Any]:
     """Return nodes and edges formatted for visualizers and graph inspectors."""
+    target_graph = graph or PROD
     nodes = [
         {"id": i, "labels": ls, "props": n.properties}
-        for i, ls, n in _ro(graph, "MATCH (n) RETURN ID(n), labels(n), n")
+        for i, ls, n in _ro(target_graph, "MATCH (n) RETURN ID(n), labels(n), n")
     ]
     edges = [
         {"src": a, "rel": rel, "dst": b, "props": r.properties}
-        for a, rel, b, r in _ro(graph, "MATCH (a)-[r]->(b) RETURN ID(a), type(r), ID(b), r")
+        for a, rel, b, r in _ro(target_graph, "MATCH (a)-[r]->(b) RETURN ID(a), type(r), ID(b), r")
     ]
-    return {"graph": graph, "nodes": nodes, "edges": edges}
+    return {"graph": target_graph, "nodes": nodes, "edges": edges}
 
 
 # ---- Attack path discovery
-def find_paths(sources: List[str], target: str, graph: str = PROD) -> Dict[str, Any]:
+def find_paths(sources: List[str], target: str, graph: Optional[str] = None) -> Dict[str, Any]:
     """Find all time-ordered attack paths from any source entity to target asset."""
+    target_graph = graph or PROD
     if not sources:
-        return {"graph": graph, "count": 0, "paths": []}
+        return {"graph": target_graph, "count": 0, "paths": []}
 
     cleaned_sources = [_name(s) for s in sources]
     cleaned_target = _name(target)
 
     if cleaned_target in cleaned_sources:
-        return {"graph": graph, "count": 0, "paths": []}
+        return {"graph": target_graph, "count": 0, "paths": []}
 
     k = NAME_KEY
     q = (
@@ -185,7 +188,7 @@ def find_paths(sources: List[str], target: str, graph: str = PROD) -> Dict[str, 
         f"WHERE s.{k} IN $sources AND t.{k} = $target "
         f"RETURN [n IN nodes(p) | n.{k}], [r IN relationships(p) | type(r)]"
     )
-    rows = _ro(graph, q, {"sources": cleaned_sources, "target": cleaned_target})
+    rows = _ro(target_graph, q, {"sources": cleaned_sources, "target": cleaned_target})
 
     # Deduplicate while preserving order
     seen = set()
@@ -196,7 +199,7 @@ def find_paths(sources: List[str], target: str, graph: str = PROD) -> Dict[str, 
             seen.add(key)
             paths.append({"nodes": n, "rels": r})
 
-    return {"graph": graph, "count": len(paths), "paths": paths}
+    return {"graph": target_graph, "count": len(paths), "paths": paths}
 
 
 # ---- Edge mapping and minimum-cut containment planning
@@ -210,7 +213,7 @@ def _edge_map(graph: str) -> Dict[Tuple[str, str], List[Tuple[str, int]]]:
     return edges
 
 
-def min_cut(sources: List[str], target: str, graph: str = PROD) -> Dict[str, Any]:
+def min_cut(sources: List[str], target: str, graph: Optional[str] = None) -> Dict[str, Any]:
     """Calculate a minimum-cut containment plan separating sources from target.
 
     Objective:
@@ -218,6 +221,7 @@ def min_cut(sources: List[str], target: str, graph: str = PROD) -> Dict[str, Any
       2. Minimum benign load disruption (secondary).
       3. Closer to source footholds (tertiary tie-breaker).
     """
+    target_graph = graph or PROD
     if not sources:
         raise ValueError("At least one source entity is required")
     if not target or not isinstance(target, str):
@@ -229,7 +233,7 @@ def min_cut(sources: List[str], target: str, graph: str = PROD) -> Dict[str, Any
     if cleaned_target in cleaned_sources:
         raise PolicyError("Target asset cannot be one of the source entities")
 
-    edges = _edge_map(graph)
+    edges = _edge_map(target_graph)
     live = [s for s in cleaned_sources if any(a == s for a, _ in edges)]
 
     if not live or cleaned_target not in {b for _, b in edges}:

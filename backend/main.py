@@ -92,7 +92,7 @@ else:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_allowed_origins,
-        allow_origin_regex=os.getenv("CORS_ORIGIN_REGEX", r"https://.*\.vercel\.app"),
+        allow_origin_regex=os.getenv("CORS_ORIGIN_REGEX", r"https://.*(\.vercel\.app|\.onrender\.com|\.pages\.dev|\.netlify\.app)"),
         allow_credentials=True,
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
         allow_headers=["*"],
@@ -203,6 +203,37 @@ class ApproveRequest(BaseModel):
         min_length=1,
         max_length=100,
         description="Identifier of the human approving the containment action",
+    )
+    actions: Optional[List[Action]] = Field(
+        default=None,
+        description="Optional explicit containment actions to simulate",
+    )
+
+
+class AgentWorkflowRequest(BaseModel):
+    sources: List[str] = Field(
+        min_length=1,
+        max_length=20,
+        description="Starting entities (workstations, footholds, accounts)",
+    )
+    target: str = Field(
+        min_length=1,
+        max_length=64,
+        description="Critical target asset entity name",
+    )
+    approve: Optional[bool] = Field(
+        default=None,
+        description="None to pause for review; True to approve and simulate; False to reject",
+    )
+    approver: str = Field(
+        default="analyst",
+        min_length=1,
+        max_length=100,
+        description="Identifier of the human analyst approving or rejecting",
+    )
+    partial_intervention: bool = Field(
+        default=False,
+        description="If True, simulates only an incomplete subset of actions to verify residual path reporting",
     )
 
 
@@ -792,7 +823,31 @@ async def approve(
     r: ApproveRequest = ...,
 ):
     """Approve or reject a case's containment proposal with human analyst authorization."""
-    return await _arun(executor.approve, case_id, r.approve, r.approver)
+    actions = [a.model_dump(exclude_none=True) for a in r.actions] if r.actions else None
+    return await _arun(executor.approve, case_id, r.approve, r.approver, actions=actions)
+
+
+@app.post("/agent/workflow")
+async def agent_workflow(r: AgentWorkflowRequest):
+    """Execute demonstrable evidence-grounded agent workflow:
+    FalkorDB graph evidence -> agent reasoning -> recommended defense ->
+    analyst approval -> isolated simulation -> independent verification -> audit result.
+    """
+    case = await _arun(executor.investigate, r.sources, r.target)
+    if r.approve is None:
+        return case
+
+    actions = None
+    if r.partial_intervention and case.get("proposal", {}).get("cut"):
+        actions = case["proposal"]["cut"][:1]
+
+    return await _arun(
+        executor.approve,
+        case["id"],
+        r.approve,
+        r.approver,
+        actions=actions,
+    )
 
 
 @app.get("/cases")

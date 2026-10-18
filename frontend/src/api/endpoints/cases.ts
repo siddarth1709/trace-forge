@@ -1,9 +1,10 @@
 import { apiClient } from '../client.ts'
-import type { CaseSummary, FullCase } from '../types.ts'
+import type { CaseSummary, FullCase, ContainmentAction } from '../types.ts'
 
 export interface ApprovePayload {
   approve: boolean
   approver?: string
+  actions?: ContainmentAction[]
 }
 
 export const casesApi = {
